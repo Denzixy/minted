@@ -21,6 +21,7 @@ class Transaction:
 
 transactions = []
 budgets = {}
+goals = {}
 
 def show_menu():
     print("\n========== MINTED ==========")
@@ -31,7 +32,10 @@ def show_menu():
     print("5. Spending summary")
     print("6. Set budget")
     print("7. View budgets")
-    print("8. Exit")
+    print("8. Create financial goals")
+    print("9. Add money to goal")
+    print("10. View goals")
+    print("11. Exit")
 
 def add_transaction(transaction_type):
     global next_transaction_id
@@ -120,6 +124,72 @@ def spending_summary():
     print("---------------------------------------")
     print(f"Total spending: RM {total:.2f}")
 
+def create_goal():
+    name = input("\nGoal name: ")
+    target = float(input("Target amount (RM): "))
+
+    goals[name] = {
+        "target": target,
+        "saved": 0
+    }
+
+    save_data()
+
+    print(f"\nGoal '{name}' created.")
+
+def add_to_goal():
+    if not goals:
+        print("\nNo goals available.")
+        return
+
+    print("\n========== GOALS ==========")
+
+    for name in goals:
+        print(f"- {name}")
+
+    name = input("\nWhich goal? ")
+
+    if name not in goals:
+        print("\nGoal not found.")
+        return
+
+    amount = float(input("Amount to add (RM): "))
+
+    goals[name]["saved"] += amount
+
+    save_data()
+
+    print(
+        f"\nRM {amount:.2f} added to "
+        f"'{name}'."
+    )
+
+def show_goals():
+    if not goals:
+        print("\nNo goals available.")
+        return
+
+    print("\n========== FINANCIAL GOALS ==========")
+
+    for name, goal in goals.items():
+
+        target = goal["target"]
+        saved = goal["saved"]
+
+        remaining = max(target - saved, 0)
+
+        percentage = (
+            (saved / target) * 100
+            if target > 0
+            else 0
+        )
+
+        print(f"\n{name}")
+        print(f"Saved:     RM {saved:.2f}")
+        print(f"Target:    RM {target:.2f}")
+        print(f"Remaining: RM {remaining:.2f}")
+        print(f"Progress:  {percentage:.1f}%")
+
 def set_budget():
     category = input("\nCategory: ")
     amount = float(input("Budget amount (RM): "))
@@ -179,6 +249,12 @@ def main():
         elif choice == "7":
             show_budgets()
         elif choice == "8":
+            create_goal()
+        elif choice == "9":
+            add_to_goal()
+        elif choice == "10":
+            show_goals()
+        elif choice == "11":
             print("\nThanks for using Minted.")
             break
         else:
@@ -187,7 +263,8 @@ def main():
 def save_data():
     data = {
         "transactions": [],
-        "budgets": budgets
+        "budgets": budgets,
+        "goals": goals
     }
 
     for transaction in transactions:
@@ -222,7 +299,8 @@ def load_data():
 
                 transactions.append(transaction)
 
-            budgets.update(data["budgets"])
+            budgets.update(data.get("budgets", {}))
+            goals.update(data.get("goals", {}))
 
             if transactions:
                 next_transaction_id = max(

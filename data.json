@@ -19,5 +19,11 @@
     ],
     "budgets": {
         "Food": 100.0
+    },
+    "goals": {
+        "Guitar": {
+            "target": 200.0,
+            "saved": 85.0
+        }
     }
 }
