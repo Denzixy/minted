@@ -1,14 +1,18 @@
 [
     {
+        "transaction_id": 1,
         "amount": 500.0,
         "transaction_type": "income",
         "category": "Allowance",
-        "description": "September allowance"
+        "description": "September allowance",
+        "date": "2026-09-20 17:29"
     },
     {
+        "transaction_id": 2,
         "amount": 15.0,
         "transaction_type": "expense",
         "category": "Food",
-        "description": "Lunch"
+        "description": "Lunch",
+        "date": "2026-09-20 17:29"
     }
 ]

@@ -1,11 +1,23 @@
 import json
+from datetime import datetime
+next_transaction_id = 1
 
 class Transaction:
-    def __init__(self, amount, transaction_type, category, description):
+    def __init__(
+        self,
+        transaction_id,
+        amount,
+        transaction_type,
+        category,
+        description,
+        date
+    ):
+        self.transaction_id = transaction_id
         self.amount = amount
         self.transaction_type = transaction_type
         self.category = category
         self.description = description
+        self.date = date
 
 transactions = []
 
@@ -18,20 +30,28 @@ def show_menu():
     print("5. Exit")
 
 def add_transaction(transaction_type):
+    global next_transaction_id
+
     print(f"\n--- Add {transaction_type} ---")
 
     amount = float(input("Amount (RM): "))
     category = input("Category: ")
     description = input("Description: ")
 
+    date = datetime.now().strftime("%Y-%m-%d %H:%M")
+
     transaction = Transaction(
+        next_transaction_id,
         amount,
         transaction_type,
         category,
-        description
+        description,
+        date
     )
 
     transactions.append(transaction)
+
+    next_transaction_id += 1
 
     save_transactions()
 
@@ -46,6 +66,8 @@ def show_transactions():
 
     for transaction in transactions:
         print(
+            f"#{transaction.transaction_id} | "
+            f"{transaction.date} | "
             f"RM {transaction.amount:.2f} | "
             f"{transaction.transaction_type.upper()} | "
             f"{transaction.category} | "
@@ -88,28 +110,41 @@ def save_transactions():
 
     for transaction in transactions:
         data.append({
+            "transaction_id": transaction.transaction_id,
             "amount": transaction.amount,
             "transaction_type": transaction.transaction_type,
             "category": transaction.category,
-            "description": transaction.description
+            "description": transaction.description,
+            "date": transaction.date
         })
+
     with open("data.json", "w") as file:
         json.dump(data, file, indent=4)
 
 def load_transactions():
+    global next_transaction_id
+
     try:
         with open("data.json", "r") as file:
             data = json.load(file)
 
             for item in data:
                 transaction = Transaction(
+                    item["transaction_id"],
                     item["amount"],
                     item["transaction_type"],
                     item["category"],
-                    item["description"]
+                    item["description"],
+                    item["date"]
                 )
 
                 transactions.append(transaction)
+            if transactions:
+                next_transaction_id = max(
+                    transaction.transaction_id
+                    for transaction in transactions
+                ) + 1
+
     except FileNotFoundError:
         pass
 
