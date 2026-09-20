@@ -1,0 +1,14 @@
+[
+    {
+        "amount": 500.0,
+        "transaction_type": "income",
+        "category": "Allowance",
+        "description": "September allowance"
+    },
+    {
+        "amount": 15.0,
+        "transaction_type": "expense",
+        "category": "Food",
+        "description": "Lunch"
+    }
+]
