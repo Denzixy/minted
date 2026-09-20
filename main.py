@@ -27,7 +27,8 @@ def show_menu():
     print("2. Add expense")
     print("3. View transactions")
     print("4. View balance")
-    print("5. Exit")
+    print("5. Spending summary")
+    print("6. Exit")
 
 def add_transaction(transaction_type):
     global next_transaction_id
@@ -85,6 +86,37 @@ def show_balance():
 
     print(f"\nCurrent balance: RM {balance:.2f}")
 
+def spending_summary():
+    if not transactions:
+        print("\nNo transactions yet.")
+        return
+
+    spending = {}
+
+    for transaction in transactions:
+        if transaction.transaction_type == "expense":
+            category = transaction.category
+
+            if category not in spending:
+                spending[category] = 0
+
+            spending[category] += transaction.amount
+
+    if not spending:
+        print("\nNo expenses recorded yet.")
+        return
+
+    print("\n========== SPENDING SUMMARY ==========")
+
+    total = 0
+
+    for category, amount in spending.items():
+        print(f"{category}: RM {amount:.2f}")
+        total += amount
+
+    print("---------------------------------------")
+    print(f"Total spending: RM {total:.2f}")
+
 def main():
     while True:
         show_menu()
@@ -100,6 +132,8 @@ def main():
         elif choice == "4":
             show_balance()
         elif choice == "5":
+            spending_summary()
+        elif choice == "6":
             print("\nThanks for using Minted.")
             break
         else:

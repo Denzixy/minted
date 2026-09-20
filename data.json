@@ -14,5 +14,29 @@
         "category": "Food",
         "description": "Lunch",
         "date": "2026-09-20 17:29"
+    },
+    {
+        "transaction_id": 3,
+        "amount": 15.0,
+        "transaction_type": "expense",
+        "category": "Food",
+        "description": "Breakfast",
+        "date": "2026-09-20 17:50"
+    },
+    {
+        "transaction_id": 4,
+        "amount": 20.0,
+        "transaction_type": "expense",
+        "category": "Food",
+        "description": "Dinner",
+        "date": "2026-09-20 17:50"
+    },
+    {
+        "transaction_id": 5,
+        "amount": 30.0,
+        "transaction_type": "expense",
+        "category": "Clothing",
+        "description": "Shirt",
+        "date": "2026-09-20 17:51"
     }
 ]
