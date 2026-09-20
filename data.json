@@ -1,42 +1,23 @@
-[
-    {
-        "transaction_id": 1,
-        "amount": 500.0,
-        "transaction_type": "income",
-        "category": "Allowance",
-        "description": "September allowance",
-        "date": "2026-09-20 17:29"
-    },
-    {
-        "transaction_id": 2,
-        "amount": 15.0,
-        "transaction_type": "expense",
-        "category": "Food",
-        "description": "Lunch",
-        "date": "2026-09-20 17:29"
-    },
-    {
-        "transaction_id": 3,
-        "amount": 15.0,
-        "transaction_type": "expense",
-        "category": "Food",
-        "description": "Breakfast",
-        "date": "2026-09-20 17:50"
-    },
-    {
-        "transaction_id": 4,
-        "amount": 20.0,
-        "transaction_type": "expense",
-        "category": "Food",
-        "description": "Dinner",
-        "date": "2026-09-20 17:50"
-    },
-    {
-        "transaction_id": 5,
-        "amount": 30.0,
-        "transaction_type": "expense",
-        "category": "Clothing",
-        "description": "Shirt",
-        "date": "2026-09-20 17:51"
+{
+    "transactions": [
+        {
+            "transaction_id": 1,
+            "amount": 500.0,
+            "transaction_type": "income",
+            "category": "Allowance",
+            "description": "September",
+            "date": "2026-09-20 18:32"
+        },
+        {
+            "transaction_id": 2,
+            "amount": 15.0,
+            "transaction_type": "expense",
+            "category": "Food",
+            "description": "Lunch",
+            "date": "2026-09-20 18:32"
+        }
+    ],
+    "budgets": {
+        "Food": 100.0
     }
-]
+}
