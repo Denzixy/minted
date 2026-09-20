@@ -1,7 +1,17 @@
 from datetime import datetime
 
 from models import Transaction
-from storage import save_data, load_data
+
+from storage import (
+    initialize_database,
+    add_transaction as db_add_transaction,
+    load_transactions,
+    save_budget,
+    load_budgets,
+    save_goal,
+    load_goals
+)
+
 from analytics import (
     calculate_balance,
     spending_summary,
@@ -9,15 +19,22 @@ from analytics import (
     show_spending_chart,
     show_monthly_chart
 )
-from budgets import set_budget, get_budget_status
-from goals import create_goal, add_to_goal, get_goal_progress
+
+from budgets import (
+    set_budget,
+    get_budget_status
+)
+
+from goals import (
+    create_goal,
+    add_to_goal,
+    get_goal_progress
+)
 
 
 transactions = []
 budgets = {}
 goals = {}
-
-next_transaction_id = 1
 
 
 def show_menu():
@@ -39,9 +56,6 @@ def show_menu():
 
 
 def add_transaction(transaction_type):
-
-    global next_transaction_id
-
     print(f"\n--- Add {transaction_type} ---")
 
     amount = float(input("Amount (RM): "))
@@ -51,7 +65,7 @@ def add_transaction(transaction_type):
     date = datetime.now().strftime("%Y-%m-%d %H:%M")
 
     transaction = Transaction(
-        next_transaction_id,
+        None,
         amount,
         transaction_type,
         category,
@@ -59,17 +73,16 @@ def add_transaction(transaction_type):
         date
     )
 
+    transaction_id = db_add_transaction(transaction)
+
+    transaction.transaction_id = transaction_id
+
     transactions.append(transaction)
 
-    next_transaction_id += 1
-
-    save_data(transactions, budgets, goals)
-
-    print("\nTransaction added successfully.")
+    print(f"\nTransaction #{transaction_id} added successfully.")
 
 
 def show_transactions():
-
     if not transactions:
         print("\nNo transactions yet.")
         return
@@ -77,7 +90,6 @@ def show_transactions():
     print("\n========== TRANSACTIONS ==========")
 
     for transaction in transactions:
-
         print(
             f"#{transaction.transaction_id} | "
             f"{transaction.date} | "
@@ -89,14 +101,12 @@ def show_transactions():
 
 
 def show_balance():
-
     balance = calculate_balance(transactions)
 
     print(f"\nCurrent balance: RM {balance:.2f}")
 
 
 def show_spending_summary():
-
     spending = spending_summary(transactions)
 
     if not spending:
@@ -108,16 +118,14 @@ def show_spending_summary():
     total = 0
 
     for category, amount in spending.items():
-
         print(f"{category}: RM {amount:.2f}")
-
         total += amount
 
     print("--------------------------------------")
     print(f"Total spending: RM {total:.2f}")
 
-def show_monthly_report():
 
+def show_monthly_report():
     year = int(input("\nYear: "))
     month = int(input("Month (1-12): "))
 
@@ -135,31 +143,41 @@ def show_monthly_report():
     print(f"Savings rate: {report['savings_rate']:.1f}%")
 
     if report["categories"]:
-
         print("\nSpending by category:")
 
         for category, amount in report["categories"].items():
             print(f"{category}: RM {amount:.2f}")
 
     else:
-
         print("\nNo expenses recorded this month.")
 
-def handle_set_budget():
 
+def handle_set_budget():
     category = input("\nCategory: ")
     amount = float(input("Budget amount (RM): "))
 
-    set_budget(budgets, category, amount)
+    set_budget(
+        budgets,
+        category,
+        amount
+    )
 
-    save_data(transactions, budgets, goals)
+    save_budget(
+        category,
+        amount
+    )
 
-    print(f"\nBudget set for {category}: RM {amount:.2f}")
+    print(
+        f"\nBudget set for {category}: "
+        f"RM {amount:.2f}"
+    )
 
 
 def show_budgets():
-
-    status = get_budget_status(budgets, transactions)
+    status = get_budget_status(
+        budgets,
+        transactions
+    )
 
     if not status:
         print("\nNo budgets set.")
@@ -170,26 +188,44 @@ def show_budgets():
     for category, data in status.items():
 
         print(f"\n{category}")
-        print(f"Spent:     RM {data['spent']:.2f}")
-        print(f"Budget:    RM {data['budget']:.2f}")
-        print(f"Remaining: RM {data['remaining']:.2f}")
-        print(f"Used:      {data['percentage']:.1f}%")
+
+        print(
+            f"Spent:     RM {data['spent']:.2f}"
+        )
+
+        print(
+            f"Budget:    RM {data['budget']:.2f}"
+        )
+
+        print(
+            f"Remaining: RM {data['remaining']:.2f}"
+        )
+
+        print(
+            f"Used:      {data['percentage']:.1f}%"
+        )
 
 
 def handle_create_goal():
-
     name = input("\nGoal name: ")
     target = float(input("Target amount (RM): "))
 
-    create_goal(goals, name, target)
+    create_goal(
+        goals,
+        name,
+        target
+    )
 
-    save_data(transactions, budgets, goals)
+    save_goal(
+        name,
+        target,
+        0
+    )
 
     print(f"\nGoal '{name}' created.")
 
 
 def handle_add_to_goal():
-
     if not goals:
         print("\nNo goals available.")
         return
@@ -205,17 +241,32 @@ def handle_add_to_goal():
         print("\nGoal not found.")
         return
 
-    amount = float(input("Amount to add (RM): "))
+    amount = float(
+        input("Amount to add (RM): ")
+    )
 
-    add_to_goal(goals, name, amount)
+    success = add_to_goal(
+        goals,
+        name,
+        amount
+    )
 
-    save_data(transactions, budgets, goals)
+    if not success:
+        print("\nGoal not found.")
+        return
 
-    print(f"\nRM {amount:.2f} added to '{name}'.")
+    save_goal(
+        name,
+        goals[name]["target"],
+        goals[name]["saved"]
+    )
+
+    print(
+        f"\nRM {amount:.2f} added to '{name}'."
+    )
 
 
 def show_goals():
-
     progress = get_goal_progress(goals)
 
     if not progress:
@@ -227,43 +278,59 @@ def show_goals():
     for name, data in progress.items():
 
         print(f"\n{name}")
-        print(f"Saved:     RM {data['saved']:.2f}")
-        print(f"Target:    RM {data['target']:.2f}")
-        print(f"Remaining: RM {data['remaining']:.2f}")
-        print(f"Progress:  {data['percentage']:.1f}%")
+
+        print(
+            f"Saved:     RM {data['saved']:.2f}"
+        )
+
+        print(
+            f"Target:    RM {data['target']:.2f}"
+        )
+
+        print(
+            f"Remaining: RM {data['remaining']:.2f}"
+        )
+
+        print(
+            f"Progress:  {data['percentage']:.1f}%"
+        )
 
 
 def load_application_data():
 
-    global next_transaction_id
+    # Load transactions
+    rows = load_transactions()
 
-    data = load_data()
-
-    for item in data["transactions"]:
+    for row in rows:
 
         transaction = Transaction(
-            item["transaction_id"],
-            item["amount"],
-            item["transaction_type"],
-            item["category"],
-            item["description"],
-            item["date"]
+            row["id"],
+            row["amount"],
+            row["transaction_type"],
+            row["category"],
+            row["description"],
+            row["date"]
         )
 
         transactions.append(transaction)
 
-    budgets.update(data.get("budgets", {}))
-    goals.update(data.get("goals", {}))
+    # Load budgets
+    for row in load_budgets():
 
-    if transactions:
+        budgets[row["category"]] = row["amount"]
 
-        next_transaction_id = max(
-            transaction.transaction_id
-            for transaction in transactions
-        ) + 1
+    # Load goals
+    for row in load_goals():
+
+        goals[row["name"]] = {
+            "target": row["target"],
+            "saved": row["saved"]
+        }
 
 
 def main():
+
+    initialize_database()
 
     load_application_data()
 
@@ -295,13 +362,14 @@ def main():
             show_spending_chart(transactions)
 
         elif choice == "8":
+
             year = int(input("\nYear: "))
             month = int(input("Month (1-12): "))
 
             show_monthly_chart(
-            transactions,
-            year,
-            month
+                transactions,
+                year,
+                month
             )
 
         elif choice == "9":
@@ -327,4 +395,5 @@ def main():
             print("\nInvalid option.")
 
 
-main()
+if __name__ == "__main__":
+    main()
