@@ -1,6 +1,7 @@
+import os
 import sqlite3
 
-DATABASE = "minted.db"
+DATABASE = os.getenv("MINTED_DATABASE", "minted.db")
 
 
 def get_connection():
