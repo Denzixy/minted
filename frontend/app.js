@@ -1,4 +1,4 @@
-const API_URL = "http://127.0.0.1:8000";
+const API_URL = "";
 
 
 let transactions = [];
@@ -15,8 +15,7 @@ async function loadTransactions() {
         transactions = await response.json();
 
         displayTransactions();
-
-        updateDashboard();
+        await loadDashboard();
 
     } catch (error) {
 
@@ -99,116 +98,53 @@ function displayTransactions() {
 }
 
 
-function updateDashboard() {
+async function loadDashboard() {
+    try {
+        const response = await fetch(
+            `${API_URL}/dashboard`
+        );
 
-    let income = 0;
-    let expenses = 0;
-
-
-    transactions.forEach(transaction => {
-
-        if (transaction.type === "income") {
-
-            income += Number(
-                transaction.amount
-            );
-
-        } else {
-
-            expenses += Number(
-                transaction.amount
-            );
-
+        if (!response.ok) {
+            throw new Error("Failed to load dashboard");
         }
 
-    });
+        const dashboard = await response.json();
 
+        document.getElementById("balance").textContent =
+            `RM ${dashboard.balance.toFixed(2)}`;
 
-    const balance =
-        income - expenses;
+        document.getElementById("income").textContent =
+            `RM ${dashboard.income.toFixed(2)}`;
 
+        document.getElementById("expenses").textContent =
+            `RM ${dashboard.expenses.toFixed(2)}`;
 
-    const savingsRate =
-        income > 0
-            ? ((balance / income) * 100)
-            : 0;
+        document.getElementById("savings-rate").textContent =
+            `${dashboard.savings_rate.toFixed(1)}%`;
 
+        displaySpending(dashboard.spending);
 
-    document.getElementById(
-        "balance"
-    ).textContent =
-        `RM ${balance.toFixed(2)}`;
-
-
-    document.getElementById(
-        "income"
-    ).textContent =
-        `RM ${income.toFixed(2)}`;
-
-
-    document.getElementById(
-        "expenses"
-    ).textContent =
-        `RM ${expenses.toFixed(2)}`;
-
-
-    document.getElementById(
-        "savings-rate"
-    ).textContent =
-        `${savingsRate.toFixed(1)}%`;
-
-
-    updateSpending();
+    } catch (error) {
+        console.error(error);
+    }
 }
 
 
-function updateSpending() {
-
-    const spending = {};
-
-
-    transactions.forEach(transaction => {
-
-        if (transaction.type !== "expense") {
-            return;
-        }
-
-
-        const category =
-            transaction.category;
-
-
-        if (!spending[category]) {
-            spending[category] = 0;
-        }
-
-
-        spending[category] += Number(
-            transaction.amount
-        );
-
-    });
-
+function displaySpending(spending) {
 
     const container =
-        document.getElementById(
-            "spending"
-        );
-
+        document.getElementById("spending");
 
     const categories =
         Object.entries(spending)
         .sort((a, b) => b[1] - a[1]);
 
-
     if (categories.length === 0) {
-
         container.innerHTML =
             "<p>No spending yet.</p>";
 
         return;
     }
-
 
     container.innerHTML =
         categories.map(
@@ -229,7 +165,6 @@ function updateSpending() {
 
                     </div>
                 `;
-
             }
         ).join("");
 }

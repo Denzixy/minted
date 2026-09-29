@@ -1,8 +1,7 @@
 from datetime import datetime
-
-from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
+from fastapi.staticfiles import StaticFiles
 
 from storage import (
     initialize_database,
@@ -19,12 +18,6 @@ app = FastAPI(
     version="1.0.0"
 )
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 
 
 initialize_database()
@@ -52,12 +45,6 @@ class TransactionUpdate(BaseModel):
 # ROOT
 # =========================
 
-@app.get("/")
-def root():
-    return {
-        "app": "Minted",
-        "status": "online"
-    }
 
 
 # =========================
@@ -219,3 +206,85 @@ def remove_transaction(transaction_id: int):
         "message": "Transaction deleted",
         "id": transaction_id
     }
+
+@app.get("/dashboard")
+def get_dashboard():
+    rows = load_transactions()
+
+    now = datetime.now()
+    current_year = now.year
+    current_month = now.month
+
+    balance = 0
+    income = 0
+    expenses = 0
+    categories = {}
+
+    for row in rows:
+        amount = float(row["amount"])
+        transaction_type = row["transaction_type"]
+
+        # All-time balance
+        if transaction_type == "income":
+            balance += amount
+        else:
+            balance -= amount
+
+        # Current-month analytics
+        transaction_date = datetime.strptime(
+            row["date"],
+            "%Y-%m-%d %H:%M"
+        )
+
+        if (
+            transaction_date.year == current_year
+            and transaction_date.month == current_month
+        ):
+            if transaction_type == "income":
+                income += amount
+
+            elif transaction_type == "expense":
+                expenses += amount
+
+                category = row["category"]
+
+                if category not in categories:
+                    categories[category] = 0
+
+                categories[category] += amount
+
+    savings = income - expenses
+
+    savings_rate = (
+        (savings / income) * 100
+        if income > 0
+        else 0
+    )
+
+    top_category = None
+
+    if categories:
+        top_category = max(
+            categories,
+            key=categories.get
+        )
+
+    return {
+        "balance": balance,
+        "income": income,
+        "expenses": expenses,
+        "savings": savings,
+        "savings_rate": savings_rate,
+        "top_category": top_category,
+        "spending": categories,
+        "month": f"{current_year}-{current_month:02d}"
+    }
+
+app.mount(
+    "/",
+    StaticFiles(
+        directory="frontend",
+        html=True
+    ),
+    name="frontend"
+)
