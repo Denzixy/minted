@@ -69,22 +69,23 @@ def get_transaction_id(prompt):
 
 def show_menu():
     print("\n========== MINTED ==========")
-    print("1. Add income")
-    print("2. Add expense")
-    print("3. View transactions")
-    print("4. View balance")
-    print("5. Spending summary")
-    print("6. Monthly report")
-    print("7. Spending chart")
-    print("8. Monthly chart")
-    print("9. Set budget")
-    print("10. View budgets")
-    print("11. Create financial goal")
-    print("12. Add money to goal")
-    print("13. View goals")
-    print("14. Edit transaction")
-    print("15. Delete transaction")
-    print("16. Exit")
+    print("1. Dashboard")
+    print("2. Add income")
+    print("3. Add expense")
+    print("4. View transactions")
+    print("5. View balance")
+    print("6. Spending summary")
+    print("7. Monthly report")
+    print("8. Spending chart")
+    print("9. Monthly chart")
+    print("10. Set budget")
+    print("11. View budgets")
+    print("12. Create financial goal")
+    print("13. Add money to goal")
+    print("14. View goals")
+    print("15. Edit transaction")
+    print("16. Delete transaction")
+    print("17. Exit")
 
 
 def add_transaction(transaction_type):
@@ -449,6 +450,82 @@ def remove_transaction():
 
     print("\nTransaction deleted successfully.")
 
+def show_dashboard():
+    now = datetime.now()
+
+    year = now.year
+    month = now.month
+
+    report = monthly_summary(
+        transactions,
+        year,
+        month
+    )
+
+    balance = calculate_balance(transactions)
+
+    print("\n" + "=" * 42)
+    print("           MINTED DASHBOARD")
+    print("=" * 42)
+
+    print(f"\nMonth: {now.strftime('%B %Y')}")
+
+    print("\n--- OVERALL BALANCE ---")
+    print(f"Current balance: RM {balance:.2f}")
+
+    print("\n--- THIS MONTH ---")
+    print(f"Income:       RM {report['income']:.2f}")
+    print(f"Expenses:     RM {report['expenses']:.2f}")
+    print(f"Savings:      RM {report['savings']:.2f}")
+    print(f"Savings rate: {report['savings_rate']:.1f}%")
+
+    print("\n--- SPENDING BY CATEGORY ---")
+
+    if report["categories"]:
+        for category, amount in sorted(
+            report["categories"].items(),
+            key=lambda item: item[1],
+            reverse=True
+        ):
+            print(f"{category}: RM {amount:.2f}")
+    else:
+        print("No expenses recorded this month.")
+
+    print("\n--- BUDGET STATUS ---")
+
+    budget_status = get_budget_status(
+        budgets,
+        transactions
+    )
+
+    if budget_status:
+        for category, data in budget_status.items():
+            print(
+                f"{category}: "
+                f"RM {data['spent']:.2f} / "
+                f"RM {data['budget']:.2f} "
+                f"({data['percentage']:.1f}%)"
+            )
+    else:
+        print("No budgets set.")
+
+    print("\n--- FINANCIAL GOALS ---")
+
+    goal_progress = get_goal_progress(goals)
+
+    if goal_progress:
+        for name, data in goal_progress.items():
+            print(
+                f"{name}: "
+                f"RM {data['saved']:.2f} / "
+                f"RM {data['target']:.2f} "
+                f"({data['percentage']:.1f}%)"
+            )
+    else:
+        print("No financial goals set.")
+
+    print("\n" + "=" * 42)
+
 def load_application_data():
 
     # Load transactions
@@ -494,59 +571,56 @@ def main():
         choice = input("\nChoose an option: ")
 
         if choice == "1":
-            add_transaction("income")
+            show_dashboard()
 
         elif choice == "2":
-            add_transaction("expense")
+            add_transaction("income")
 
         elif choice == "3":
-            show_transactions()
+            add_transaction("expense")
 
         elif choice == "4":
-            show_balance()
+            show_transactions()
 
         elif choice == "5":
-            show_spending_summary()
+            show_balance()
 
         elif choice == "6":
-            show_monthly_report()
+            show_spending_summary()
 
         elif choice == "7":
-            show_spending_chart(transactions)
+            show_monthly_report()
 
         elif choice == "8":
-
-            year = int(input("\nYear: "))
-            month = int(input("Month (1-12): "))
-
-            show_monthly_chart(
-                transactions,
-                year,
-                month
-            )
+            show_spending_chart(transactions)
 
         elif choice == "9":
-            handle_set_budget()
+            year = int(input("\nYear: "))
+            month = int(input("Month (1-12): "))
+            show_monthly_chart(transactions, year, month)
 
         elif choice == "10":
-            show_budgets()
+            handle_set_budget()
 
         elif choice == "11":
-            handle_create_goal()
+            show_budgets()
 
         elif choice == "12":
-            handle_add_to_goal()
+            handle_create_goal()
 
         elif choice == "13":
-            show_goals()
+            handle_add_to_goal()
 
         elif choice == "14":
-            edit_transaction()
+            show_goals()
 
         elif choice == "15":
-            remove_transaction()
+            edit_transaction()
 
         elif choice == "16":
+            remove_transaction()
+
+        elif choice == "17":
             print("\nThanks for using Minted.")
             break
 
