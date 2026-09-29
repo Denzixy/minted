@@ -149,3 +149,50 @@ def load_goals():
     connection.close()
 
     return rows
+
+def update_transaction(
+    transaction_id,
+    amount,
+    transaction_type,
+    category,
+    description
+):
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    cursor.execute("""
+        UPDATE transactions
+        SET amount = ?,
+            transaction_type = ?,
+            category = ?,
+            description = ?
+        WHERE id = ?
+    """, (
+        amount,
+        transaction_type,
+        category,
+        description,
+        transaction_id
+    ))
+
+    connection.commit()
+    updated = cursor.rowcount > 0
+    connection.close()
+
+    return updated
+
+
+def delete_transaction(transaction_id):
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    cursor.execute("""
+        DELETE FROM transactions
+        WHERE id = ?
+    """, (transaction_id,))
+
+    connection.commit()
+    deleted = cursor.rowcount > 0
+    connection.close()
+
+    return deleted

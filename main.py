@@ -9,7 +9,9 @@ from storage import (
     save_budget,
     load_budgets,
     save_goal,
-    load_goals
+    load_goals,
+    update_transaction,
+    delete_transaction
 )
 
 from analytics import (
@@ -36,6 +38,34 @@ transactions = []
 budgets = {}
 goals = {}
 
+def get_positive_amount(prompt):
+    while True:
+        try:
+            amount = float(input(prompt))
+
+            if amount <= 0:
+                print("Amount must be greater than zero.")
+                continue
+
+            return amount
+
+        except ValueError:
+            print("Please enter a valid number.")
+
+
+def get_transaction_id(prompt):
+    while True:
+        try:
+            transaction_id = int(input(prompt))
+
+            if transaction_id <= 0:
+                print("Enter a valid transaction ID.")
+                continue
+
+            return transaction_id
+
+        except ValueError:
+            print("Please enter a whole number.")
 
 def show_menu():
     print("\n========== MINTED ==========")
@@ -52,13 +82,15 @@ def show_menu():
     print("11. Create financial goal")
     print("12. Add money to goal")
     print("13. View goals")
-    print("14. Exit")
+    print("14. Edit transaction")
+    print("15. Delete transaction")
+    print("16. Exit")
 
 
 def add_transaction(transaction_type):
     print(f"\n--- Add {transaction_type} ---")
 
-    amount = float(input("Amount (RM): "))
+    amount = get_positive_amount("Amount (RM): ")
     category = input("Category: ")
     description = input("Description: ")
 
@@ -295,6 +327,127 @@ def show_goals():
             f"Progress:  {data['percentage']:.1f}%"
         )
 
+def edit_transaction():
+    if not transactions:
+        print("\nNo transactions to edit.")
+        return
+
+    show_transactions()
+
+    transaction_id = get_transaction_id(
+        "\nEnter transaction ID to edit: "
+    )
+
+    transaction = next(
+        (
+            item for item in transactions
+            if item.transaction_id == transaction_id
+        ),
+        None
+    )
+
+    if transaction is None:
+        print("\nTransaction not found.")
+        return
+
+    print("\nLeave a field blank to keep its current value.")
+
+    print(f"Current amount: RM {transaction.amount:.2f}")
+    new_amount = input("New amount: ").strip()
+
+    if new_amount:
+        try:
+            new_amount = float(new_amount)
+
+            if new_amount <= 0:
+                print("Amount must be greater than zero.")
+                return
+
+        except ValueError:
+            print("Invalid amount.")
+            return
+    else:
+        new_amount = transaction.amount
+
+    print(f"Current type: {transaction.transaction_type}")
+    new_type = input("New type (income/expense): ").strip().lower()
+
+    if new_type:
+        if new_type not in ("income", "expense"):
+            print("Type must be income or expense.")
+            return
+    else:
+        new_type = transaction.transaction_type
+
+    new_category = input(
+        f"New category [{transaction.category}]: "
+    ).strip()
+
+    if not new_category:
+        new_category = transaction.category
+
+    new_description = input(
+        f"New description [{transaction.description}]: "
+    ).strip()
+
+    if not new_description:
+        new_description = transaction.description
+
+    update_transaction(
+        transaction_id,
+        new_amount,
+        new_type,
+        new_category,
+        new_description
+    )
+
+    transaction.amount = new_amount
+    transaction.transaction_type = new_type
+    transaction.category = new_category
+    transaction.description = new_description
+
+    print("\nTransaction updated successfully.")
+
+
+def remove_transaction():
+    if not transactions:
+        print("\nNo transactions to delete.")
+        return
+
+    show_transactions()
+
+    transaction_id = get_transaction_id(
+        "\nEnter transaction ID to delete: "
+    )
+
+    transaction = next(
+        (
+            item for item in transactions
+            if item.transaction_id == transaction_id
+        ),
+        None
+    )
+
+    if transaction is None:
+        print("\nTransaction not found.")
+        return
+
+    print(
+        f"\nDelete {transaction.description} "
+        f"(RM {transaction.amount:.2f})?"
+    )
+
+    confirmation = input("Type YES to confirm: ").strip()
+
+    if confirmation != "YES":
+        print("Deletion cancelled.")
+        return
+
+    delete_transaction(transaction_id)
+
+    transactions.remove(transaction)
+
+    print("\nTransaction deleted successfully.")
 
 def load_application_data():
 
@@ -388,6 +541,12 @@ def main():
             show_goals()
 
         elif choice == "14":
+            edit_transaction()
+
+        elif choice == "15":
+            remove_transaction()
+
+        elif choice == "16":
             print("\nThanks for using Minted.")
             break
 
