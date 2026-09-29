@@ -1,15 +1,13 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 
-from pydantic import (
-    BaseModel,
-    Field
+from pydantic import BaseModel, Field
+
+from storage import (
+    save_goal,
+    delete_goal
 )
 
-from storage import save_goal
-
-from services.goals import (
-    get_goal_data
-)
+from services.goals import get_goal_data
 
 
 router = APIRouter(
@@ -53,4 +51,30 @@ def create_goal(
 
     return {
         "message": "Goal saved successfully."
+    }
+
+@router.put("/{name}")
+def update_goal(name: str, goal: GoalCreate):
+    save_goal(
+        name,
+        goal.target,
+        goal.saved,
+        goal.deadline
+    )
+
+    return {"message": "Goal updated successfully."}
+
+
+@router.delete("/{name}")
+def remove_goal(name: str):
+    deleted = delete_goal(name)
+
+    if not deleted:
+        raise HTTPException(
+            status_code=404,
+            detail="Goal not found."
+        )
+
+    return {
+        "message": "Goal deleted successfully."
     }

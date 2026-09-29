@@ -1,11 +1,11 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 
 from pydantic import (
     BaseModel,
     Field
 )
 
-from storage import save_budget
+from storage import save_budget, delete_budget
 
 from services.budgets import (
     get_budget_data
@@ -61,3 +61,31 @@ def create_budget(
     return {
         "message": "Budget saved successfully."
     }
+
+@router.put("/{category}")
+def update_budget(category: str, budget: BudgetCreate):
+    save_budget(
+        category,
+        budget.amount,
+        budget.year,
+        budget.month
+    )
+
+    return {"message": "Budget updated successfully."}
+
+
+@router.delete("/{category}")
+def remove_budget(
+    category: str,
+    year: int,
+    month: int
+):
+    deleted = delete_budget(category, year, month)
+
+    if not deleted:
+        raise HTTPException(
+            status_code=404,
+            detail="Budget not found."
+        )
+
+    return {"message": "Budget deleted successfully."}

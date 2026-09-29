@@ -257,3 +257,37 @@ def load_goals():
     connection.close()
 
     return rows
+
+def delete_budget(category, year, month):
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    cursor.execute("""
+        DELETE FROM budgets
+        WHERE category = ?
+        AND year = ?
+        AND month = ?
+    """, (category, year, month))
+
+    connection.commit()
+    deleted = cursor.rowcount > 0
+    connection.close()
+    return deleted
+
+
+def delete_goal(name):
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    cursor.execute("""
+        DELETE FROM goals
+        WHERE name = ?
+    """, (name,))
+
+    connection.commit()
+
+    deleted = cursor.rowcount > 0
+
+    connection.close()
+
+    return deleted

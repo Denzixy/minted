@@ -840,113 +840,114 @@ async function loadBudgets() {
 }
 
 
-function displayBudgets(
-    budgets
-) {
+function displayBudgets(budgets) {
+    const container = document.getElementById("budget-list");
 
-    const container =
-        document.getElementById(
-            "budget-list"
-        );
-
-
-    if (
-        budgets.length === 0
-    ) {
-
+    if (budgets.length === 0) {
         container.innerHTML = `
             <div class="empty-budget">
-
-                <h3>
-                    No budgets yet
-                </h3>
-
-                <p>
-                    Create a budget to start
-                    tracking your spending.
-                </p>
-
+                <h3>No budgets yet</h3>
+                <p>Create a budget to start tracking your spending.</p>
             </div>
         `;
-
         return;
     }
 
+    container.innerHTML = budgets.map(budget => {
+        const percentage = Math.min(budget.percentage, 100);
 
-    container.innerHTML =
-        budgets.map(
-            budget => {
+        const status = budget.over_budget
+            ? "Over budget"
+            : `RM ${budget.remaining.toFixed(2)} remaining`;
 
-                const percentage =
-                    Math.min(
-                        budget.percentage,
-                        100
-                    );
-
-
-                const status =
-                    budget.over_budget
-
-                        ? "Over budget"
-
-                        : `${budget.remaining.toFixed(2)} remaining`;
-
-
-                return `
-                    <div class="budget-card">
-
-                        <div class="budget-header">
-
-                            <div>
-
-                                <h3>
-                                    ${escapeHtml(
-                                        budget.category
-                                    )}
-                                </h3>
-
-                                <p>
-                                    RM ${budget.spent.toFixed(2)}
-                                    /
-                                    RM ${budget.budget.toFixed(2)}
-                                </p>
-
-                            </div>
-
-                            <strong>
-                                ${budget.percentage.toFixed(0)}%
-                            </strong>
-
-                        </div>
-
-
-                        <div class="progress-track">
-
-                            <div
-                                class="progress-bar
-                                ${budget.over_budget ? "over" : ""}"
-                                style="
-                                    width:
-                                    ${percentage}%;
-                                "
-                            ></div>
-
-                        </div>
-
-
-                        <div class="budget-footer">
-
-                            <span>
-                                ${status}
-                            </span>
-
-                        </div>
-
+        return `
+            <div class="budget-card">
+                <div class="budget-header">
+                    <div>
+                        <h3>${escapeHtml(budget.category)}</h3>
+                        <p>
+                            RM ${budget.spent.toFixed(2)}
+                            / RM ${budget.budget.toFixed(2)}
+                        </p>
                     </div>
-                `;
+                    <strong>${budget.percentage.toFixed(0)}%</strong>
+                </div>
 
-            }
-        ).join("");
+                <div class="progress-track">
+                    <div class="progress-bar ${budget.over_budget ? "over" : ""}"
+                         style="width:${percentage}%"></div>
+                </div>
+
+                <div class="budget-footer">
+                    <span>${status}</span>
+                </div>
+
+                <div class="management-actions">
+                    <button class="action-button"
+                        onclick="editBudget('${escapeHtml(budget.category)}', ${budget.budget})">
+                        Edit
+                    </button>
+                    <button class="action-button delete-button"
+                        onclick="removeBudget('${escapeHtml(budget.category)}')">
+                        Delete
+                    </button>
+                </div>
+            </div>
+        `;
+    }).join("");
+}
+
+async function editBudget(category, currentAmount) {
+    const amount = prompt("New monthly budget (RM):", currentAmount);
+
+    if (amount === null) return;
+
+    const value = Number(amount);
+
+    if (!Number.isFinite(value) || value <= 0) {
+        alert("Enter a valid budget amount.");
+        return;
+    }
+
+    const response = await fetch(
+        `${API_URL}/budgets/${encodeURIComponent(category)}`,
+        {
+            method: "PUT",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({
+                category,
+                amount: value,
+                year: budgetDate.getFullYear(),
+                month: budgetDate.getMonth() + 1
+            })
+        }
+    );
+
+    if (!response.ok) {
+        alert("Could not update budget.");
+        return;
+    }
+
+    await loadBudgets();
+}
+
+async function removeBudget(category) {
+    if (!confirm(`Delete the ${category} budget?`)) return;
+
+    const year = budgetDate.getFullYear();
+    const month = budgetDate.getMonth() + 1;
+
+    const response = await fetch(
+        `${API_URL}/budgets/${encodeURIComponent(category)}?year=${year}&month=${month}`,
+        {method: "DELETE"}
+    );
+
+    if (!response.ok) {
+        alert("Could not delete budget.");
+        return;
+    }
+
+    await loadBudgets();
 }
 
 
@@ -1143,112 +1144,134 @@ async function loadGoals() {
 }
 
 
-function displayGoals(
-    goals
-) {
+function displayGoals(goals) {
+    const container = document.getElementById("goal-list");
 
-    const container =
-        document.getElementById(
-            "goal-list"
-        );
-
-
-    if (
-        goals.length === 0
-    ) {
-
+    if (goals.length === 0) {
         container.innerHTML = `
             <div class="empty-budget">
-
-                <h3>
-                    No goals yet
-                </h3>
-
-                <p>
-                    Create a goal and start
-                    tracking your progress.
-                </p>
-
+                <h3>No goals yet</h3>
+                <p>Create a goal and start tracking your progress.</p>
             </div>
         `;
-
         return;
     }
 
+    container.innerHTML = goals.map(goal => `
+        <div class="goal-card">
+            <div class="goal-header">
+                <div>
+                    <h3>${escapeHtml(goal.name)}</h3>
+                    <p>${goal.deadline ? `Target: ${escapeHtml(goal.deadline)}` : "No deadline"}</p>
+                </div>
+                <strong>${goal.percentage.toFixed(0)}%</strong>
+            </div>
 
-    container.innerHTML =
-        goals.map(
-            goal => {
+            <div class="goal-amount">
+                RM ${goal.saved.toFixed(2)}
+                <span>/ RM ${goal.target.toFixed(2)}</span>
+            </div>
 
-                return `
-                    <div class="goal-card">
+            <div class="progress-track">
+                <div class="progress-bar" style="width:${goal.percentage}%"></div>
+            </div>
 
-                        <div class="goal-header">
+            <div class="goal-footer">
+                <span>RM ${goal.remaining.toFixed(2)} remaining</span>
+            </div>
 
-                            <div>
+            <div class="management-actions">
+                <button class="action-button"
+                    onclick="editGoal('${escapeHtml(goal.name)}', ${goal.target}, ${goal.saved}, '${goal.deadline || ""}')">
+                    Edit
+                </button>
+                <button class="action-button delete-button"
+                    onclick="removeGoal('${escapeHtml(goal.name)}')">
+                    Delete
+                </button>
+            </div>
+        </div>
+    `).join("");
+}
 
-                                <h3>
-                                    ${escapeHtml(
-                                        goal.name
-                                    )}
-                                </h3>
+async function editGoal(name, target, saved, deadline) {
+    const newTarget = prompt("Target amount (RM):", target);
+    if (newTarget === null) return;
 
-                                <p>
-                                    ${
-                                        goal.deadline
-                                            ? `Target: ${goal.deadline}`
-                                            : "No deadline"
-                                    }
-                                </p>
+    const newSaved = prompt("Amount saved (RM):", saved);
+    if (newSaved === null) return;
 
-                            </div>
+    const newDeadline = prompt("Deadline (YYYY-MM-DD, optional):", deadline);
+    if (newDeadline === null) return;
 
-                            <strong>
-                                ${goal.percentage.toFixed(0)}%
-                            </strong>
+    const targetValue = Number(newTarget);
+    const savedValue = Number(newSaved);
 
-                        </div>
+    if (
+        !Number.isFinite(targetValue) || targetValue <= 0 ||
+        !Number.isFinite(savedValue) || savedValue < 0
+    ) {
+        alert("Enter valid amounts.");
+        return;
+    }
 
+    const response = await fetch(
+        `${API_URL}/goals/${encodeURIComponent(name)}`,
+        {
+            method: "PUT",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({
+                name,
+                target: targetValue,
+                saved: savedValue,
+                deadline: newDeadline || null
+            })
+        }
+    );
 
-                        <div class="goal-amount">
+    if (!response.ok) {
+        alert("Could not update goal.");
+        return;
+    }
 
-                            RM ${goal.saved.toFixed(2)}
+    await loadGoals();
+}
 
-                            <span>
-                                /
-                                RM ${goal.target.toFixed(2)}
-                            </span>
+async function removeGoal(name) {
+    const confirmed = confirm(
+        `Delete the "${name}" savings goal?`
+    );
 
-                        </div>
+    if (!confirmed) {
+        return;
+    }
 
-
-                        <div class="progress-track">
-
-                            <div
-                                class="progress-bar"
-                                style="
-                                    width:
-                                    ${goal.percentage}%;
-                                "
-                            ></div>
-
-                        </div>
-
-
-                        <div class="goal-footer">
-
-                            <span>
-                                RM ${goal.remaining.toFixed(2)}
-                                remaining
-                            </span>
-
-                        </div>
-
-                    </div>
-                `;
-
+    try {
+        const response = await fetch(
+            `${API_URL}/goals/${encodeURIComponent(name)}`,
+            {
+                method: "DELETE"
             }
-        ).join("");
+        );
+
+        if (!response.ok) {
+            const error = await response.json();
+            console.error(error);
+
+            alert(
+                error.detail ||
+                "Could not delete goal."
+            );
+
+            return;
+        }
+
+        await loadGoals();
+
+    } catch (error) {
+        console.error(error);
+        alert("Could not connect to Minted API.");
+    }
 }
 
 
