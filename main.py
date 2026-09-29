@@ -35,6 +35,11 @@ from goals import (
 
 from export import export_transactions
 
+from insights import (
+    generate_insights,
+    compare_with_previous_month
+)
+
 
 transactions = []
 budgets = {}
@@ -540,6 +545,31 @@ def show_dashboard():
             )
     else:
         print("No financial goals set.")
+
+    print("\n--- SMART INSIGHTS ---")
+
+    insights = generate_insights(
+        transactions,
+        year,
+        month
+    )
+
+    for insight in insights:
+        print(f"• {insight}")
+
+    print("\n--- MONTH-TO-MONTH CHANGES ---")
+
+    comparisons = compare_with_previous_month(
+        transactions,
+        year,
+        month
+    )
+
+    if comparisons:
+        for comparison in comparisons:
+            print(f"• {comparison}")
+    else:
+        print("Not enough previous-month data.")
 
     print("\n" + "=" * 42)
 
