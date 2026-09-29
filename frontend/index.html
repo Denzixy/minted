@@ -128,58 +128,40 @@
             <!-- STAT CARDS -->
 
             <div class="stats-grid">
-
                 <div class="stat-card">
-
-                    <p>
-                        Balance
-                    </p>
-
-                    <h2 id="balance">
-                        RM 0.00
-                    </h2>
-
+                    <p>Balance</p>
+                    <h2 id="balance">RM 0.00</h2>
+                    <span class="stat-description">
+                        Total money movement
+                    </span>
                 </div>
 
-
                 <div class="stat-card">
-
-                    <p>
-                        Income
-                    </p>
-
-                    <h2 id="income">
-                        RM 0.00
-                    </h2>
-
+                    <p>Income</p>
+                    <h2 id="income">RM 0.00</h2>
+                    <span class="stat-description">
+                        This month
+                    </span>
                 </div>
 
-
                 <div class="stat-card">
-
-                    <p>
-                        Expenses
-                    </p>
-
-                    <h2 id="expenses">
-                        RM 0.00
-                    </h2>
-
+                    <p>Expenses</p>
+                    <h2 id="expenses">RM 0.00</h2>
+                    <span class="stat-description">
+                        This month
+                    </span>
                 </div>
 
-
                 <div class="stat-card">
-
-                    <p>
-                        Savings rate
-                    </p>
-
-                    <h2 id="savings-rate">
-                        0%
-                    </h2>
-
+                    <p>Savings</p>
+                    <h2 id="savings">RM 0.00</h2>
+                    <span
+                        id="savings-rate"
+                        class="stat-description"
+                    >
+                        0% savings rate
+                    </span>
                 </div>
-
             </div>
 
 
@@ -246,6 +228,35 @@
 
                     </div>
 
+                </div>
+
+                <div class="panel insight-panel">
+                    <div class="panel-header">
+                        <div>
+                            <p class="eyebrow">MINTED INSIGHT</p>
+                            <h2>Financial snapshot</h2>
+                        </div>
+                    </div>
+
+                    <div id="financial-insight" class="financial-insight">
+                        Analyzing your finances...
+                    </div>
+
+                    <div class="insight-details">
+                        <div>
+                            <span>Top category</span>
+                            <strong id="top-category">
+                                —
+                            </strong>
+                        </div>
+
+                        <div>
+                            <span>Savings rate</span>
+                            <strong id="insight-savings-rate">
+                                0%
+                            </strong>
+                        </div>
+                    </div>
                 </div>
 
             </div>

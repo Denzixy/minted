@@ -113,58 +113,48 @@ function showPage(
 ========================================= */
 
 async function loadDashboard() {
-
     try {
+        const year = selectedDate.getFullYear();
+        const month = selectedDate.getMonth() + 1;
 
-        const year =
-            selectedDate.getFullYear();
-
-        const month =
-            selectedDate.getMonth() + 1;
-
-
-        const response =
-            await fetch(
-                `${API_URL}/dashboard?year=${year}&month=${month}`
-            );
-
+        const response = await fetch(
+            `${API_URL}/dashboard?year=${year}&month=${month}`
+        );
 
         if (!response.ok) {
-
             throw new Error(
                 "Failed to load dashboard"
             );
-
         }
 
+        const dashboard = await response.json();
 
-        const dashboard =
-            await response.json();
-
-
-        document.getElementById(
-            "balance"
-        ).textContent =
+        document.getElementById("balance").textContent =
             `RM ${dashboard.balance.toFixed(2)}`;
 
-
-        document.getElementById(
-            "income"
-        ).textContent =
+        document.getElementById("income").textContent =
             `RM ${dashboard.income.toFixed(2)}`;
 
-
-        document.getElementById(
-            "expenses"
-        ).textContent =
+        document.getElementById("expenses").textContent =
             `RM ${dashboard.expenses.toFixed(2)}`;
 
+        document.getElementById("savings").textContent =
+            `RM ${dashboard.savings.toFixed(2)}`;
+
+        document.getElementById("savings-rate").textContent =
+            `${dashboard.savings_rate.toFixed(1)}% savings rate`;
 
         document.getElementById(
-            "savings-rate"
+            "insight-savings-rate"
         ).textContent =
             `${dashboard.savings_rate.toFixed(1)}%`;
 
+        document.getElementById(
+            "top-category"
+        ).textContent =
+            dashboard.top_category || "None";
+
+        updateFinancialInsight(dashboard);
 
         updateMonthLabel();
 
@@ -172,16 +162,111 @@ async function loadDashboard() {
             dashboard.spending
         );
 
-
         await loadTransactions();
 
     } catch (error) {
+        console.error(error);
 
-        console.error(
-            error
+        document.getElementById(
+            "transactions"
+        ).innerHTML =
+            "<p>Could not connect to Minted API.</p>";
+    }
+}
+
+function updateFinancialInsight(dashboard) {
+    const container =
+        document.getElementById(
+            "financial-insight"
         );
 
+    const {
+        income,
+        expenses,
+        savings,
+        savings_rate,
+        top_category
+    } = dashboard;
+
+    if (income === 0 && expenses === 0) {
+        container.innerHTML = `
+            <div class="insight-message">
+                <strong>No financial activity yet.</strong>
+                <p>
+                    Add some transactions and Minted
+                    will start analyzing your spending.
+                </p>
+            </div>
+        `;
+        return;
     }
+
+    if (savings < 0) {
+        container.innerHTML = `
+            <div class="insight-message">
+                <strong>
+                    You're spending more than you earn.
+                </strong>
+
+                <p>
+                    Your expenses are
+                    RM ${Math.abs(savings).toFixed(2)}
+                    higher than your income this month.
+                </p>
+            </div>
+        `;
+        return;
+    }
+
+    if (savings_rate >= 30) {
+        container.innerHTML = `
+            <div class="insight-message">
+                <strong>
+                    Strong savings month.
+                </strong>
+
+                <p>
+                    You're keeping
+                    ${savings_rate.toFixed(1)}%
+                    of your income.
+                </p>
+            </div>
+        `;
+        return;
+    }
+
+    if (savings_rate >= 10) {
+        container.innerHTML = `
+            <div class="insight-message">
+                <strong>
+                    You're building savings.
+                </strong>
+
+                <p>
+                    You saved
+                    RM ${savings.toFixed(2)}
+                    this month.
+                </p>
+            </div>
+        `;
+        return;
+    }
+
+    container.innerHTML = `
+        <div class="insight-message">
+            <strong>
+                Most of your income is being spent.
+            </strong>
+
+            <p>
+                ${
+                    top_category
+                        ? `${top_category} is currently your largest spending category.`
+                        : "Add more transactions to see spending patterns."
+                }
+            </p>
+        </div>
+    `;
 }
 
 
@@ -375,6 +460,57 @@ async function loadAllTransactions() {
 
     displayAllTransactions();
 
+}
+
+function displayTransactions() {
+    const container = document.getElementById("transactions");
+
+    if (!container) return;
+
+    const recent = [...transactions]
+        .reverse()
+        .slice(0, 8);
+
+    if (recent.length === 0) {
+        container.innerHTML = `
+            <p>No transactions yet.</p>
+        `;
+        return;
+    }
+
+    container.innerHTML = recent.map(transaction => {
+        const isIncome = transaction.type === "income";
+
+        return `
+            <div class="transaction">
+                <div class="transaction-left">
+                    <div class="transaction-icon">
+                        ${isIncome ? "↑" : "↓"}
+                    </div>
+
+                    <div class="transaction-info">
+                        <strong>
+                            ${escapeHtml(transaction.description)}
+                        </strong>
+
+                        <span>
+                            ${escapeHtml(transaction.category)}
+                            ·
+                            ${escapeHtml(transaction.date)}
+                        </span>
+                    </div>
+                </div>
+
+                <div class="
+                    transaction-amount
+                    ${isIncome ? "income" : "expense"}
+                ">
+                    ${isIncome ? "+" : "-"}
+                    RM ${Number(transaction.amount).toFixed(2)}
+                </div>
+            </div>
+        `;
+    }).join("");
 }
 
 
