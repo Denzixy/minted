@@ -1,0 +1,350 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+
+body {
+    font-family: Arial, sans-serif;
+    background: #f5f5f7;
+    color: #171717;
+}
+
+
+button,
+input,
+select {
+    font: inherit;
+}
+
+
+.app {
+    min-height: 100vh;
+    display: flex;
+}
+
+
+/* SIDEBAR */
+
+.sidebar {
+    width: 230px;
+    background: #111111;
+    color: white;
+    padding: 30px 20px;
+}
+
+
+.logo {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 50px;
+}
+
+.logo span {
+    color: #72d572;
+}
+
+
+nav {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+
+.nav-item {
+    border: none;
+    background: transparent;
+    color: #999;
+    text-align: left;
+    padding: 13px 15px;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+
+.nav-item:hover,
+.nav-item.active {
+    background: #242424;
+    color: white;
+}
+
+
+/* MAIN */
+
+.main {
+    flex: 1;
+    padding: 45px;
+    max-width: 1500px;
+}
+
+
+.topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 35px;
+}
+
+
+.eyebrow {
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: #888;
+    margin-bottom: 8px;
+}
+
+
+h1 {
+    font-size: 38px;
+}
+
+
+.add-button {
+    border: none;
+    background: #111;
+    color: white;
+    padding: 13px 20px;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+
+.add-button:hover {
+    opacity: 0.85;
+}
+
+
+/* STAT CARDS */
+
+.stats {
+    display: grid;
+    grid-template-columns:
+        repeat(4, 1fr);
+
+    gap: 18px;
+    margin-bottom: 25px;
+}
+
+
+.card {
+    background: white;
+    padding: 25px;
+    border-radius: 16px;
+    border: 1px solid #e8e8e8;
+}
+
+
+.card p {
+    color: #888;
+    font-size: 14px;
+    margin-bottom: 12px;
+}
+
+
+.card h2 {
+    font-size: 25px;
+}
+
+
+/* CONTENT */
+
+.content-grid {
+    display: grid;
+    grid-template-columns:
+        2fr 1fr;
+
+    gap: 20px;
+}
+
+
+.panel {
+    background: white;
+    border: 1px solid #e8e8e8;
+    border-radius: 16px;
+    padding: 25px;
+}
+
+
+.panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+
+.panel-header h3 {
+    font-size: 18px;
+}
+
+
+.refresh {
+    border: none;
+    background: #f0f0f0;
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+
+/* TRANSACTIONS */
+
+.transaction {
+    display: flex;
+    justify-content: space-between;
+    padding: 15px 0;
+    border-bottom: 1px solid #eee;
+}
+
+
+.transaction:last-child {
+    border-bottom: none;
+}
+
+
+.transaction-info strong {
+    display: block;
+    margin-bottom: 4px;
+}
+
+
+.transaction-info span {
+    font-size: 13px;
+    color: #888;
+}
+
+
+.income {
+    color: #159447;
+}
+
+
+.expense {
+    color: #d64545;
+}
+
+
+/* MODAL */
+
+.modal {
+    position: fixed;
+    inset: 0;
+
+    background: rgba(0, 0, 0, 0.45);
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+
+.modal.hidden {
+    display: none;
+}
+
+
+.modal-content {
+    background: white;
+    width: 420px;
+    padding: 30px;
+    border-radius: 18px;
+}
+
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 25px;
+}
+
+
+.close {
+    border: none;
+    background: transparent;
+    font-size: 25px;
+    cursor: pointer;
+}
+
+
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+
+label {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    font-size: 14px;
+}
+
+
+input,
+select {
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 9px;
+    outline: none;
+}
+
+
+input:focus,
+select:focus {
+    border-color: #111;
+}
+
+
+.submit-button {
+    border: none;
+    background: #111;
+    color: white;
+    padding: 13px;
+    border-radius: 9px;
+    cursor: pointer;
+}
+
+
+/* MOBILE */
+
+@media (max-width: 900px) {
+
+    .sidebar {
+        display: none;
+    }
+
+    .main {
+        padding: 25px;
+    }
+
+    .stats {
+        grid-template-columns:
+            repeat(2, 1fr);
+    }
+
+    .content-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+
+@media (max-width: 550px) {
+
+    .stats {
+        grid-template-columns: 1fr;
+    }
+
+    .topbar {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .main {
+        padding: 18px;
+    }
+
+}

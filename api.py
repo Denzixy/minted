@@ -1,5 +1,6 @@
 from datetime import datetime
 
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 
@@ -16,6 +17,13 @@ app = FastAPI(
     title="Minted API",
     description="Personal finance API for the Minted app.",
     version="1.0.0"
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 
