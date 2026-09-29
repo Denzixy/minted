@@ -190,7 +190,9 @@ def show_monthly_report():
 
 def handle_set_budget():
     category = input("\nCategory: ")
-    amount = float(input("Budget amount (RM): "))
+    amount = get_positive_amount(
+        "Budget amount (RM): "
+    )  
 
     set_budget(
         budgets,
@@ -210,16 +212,26 @@ def handle_set_budget():
 
 
 def show_budgets():
+    now = datetime.now()
+
+    year = now.year
+    month = now.month
+
     status = get_budget_status(
         budgets,
-        transactions
+        transactions,
+        year,
+        month
     )
 
     if not status:
         print("\nNo budgets set.")
         return
 
-    print("\n========== BUDGETS ==========")
+    print(
+        f"\n========== BUDGETS "
+        f"({year}-{month:02d}) =========="
+    )
 
     for category, data in status.items():
 
@@ -498,7 +510,9 @@ def show_dashboard():
 
     budget_status = get_budget_status(
         budgets,
-        transactions
+        transactions,
+        year,
+        month
     )
 
     if budget_status:
