@@ -285,14 +285,37 @@
 
 
             <div class="panel">
+                <div class="transaction-filters">
+                    <input
+                        id="transaction-search"
+                        type="search"
+                        placeholder="Search transactions..."
+                        oninput="displayAllTransactions()"
+                    >
 
-                <div
-                    id="all-transactions"
-                    class="transaction-list"
-                >
-                    Loading...
+                    <select
+                        id="transaction-type-filter"
+                        onchange="displayAllTransactions()"
+                    >
+                        <option value="all">All types</option>
+                        <option value="income">Income</option>
+                        <option value="expense">Expenses</option>
+                    </select>
+
+                    <select
+                        id="transaction-sort"
+                        onchange="displayAllTransactions()"
+                    >
+                        <option value="newest">Newest first</option>
+                        <option value="oldest">Oldest first</option>
+                        <option value="highest">Highest amount</option>
+                        <option value="lowest">Lowest amount</option>
+                    </select>
                 </div>
 
+                <div id="all-transactions" class="transaction-list">
+                    Loading...
+                </div>
             </div>
 
         </section>
@@ -519,6 +542,68 @@
 
 
 <!-- BUDGET MODAL -->
+
+<!-- Edit Transaction Modal -->
+<div id="edit-transaction-modal" class="modal hidden">
+    <div class="modal-content">
+        <div class="modal-header">
+            <div>
+                <p class="eyebrow">EDIT ENTRY</p>
+                <h2>Edit transaction</h2>
+            </div>
+
+            <button
+                class="close-button"
+                onclick="closeEditTransactionModal()"
+            >
+                ×
+            </button>
+        </div>
+
+        <form id="edit-transaction-form">
+            <label>
+                Type
+                <select id="edit-transaction-type" required>
+                    <option value="expense">Expense</option>
+                    <option value="income">Income</option>
+                </select>
+            </label>
+
+            <label>
+                Amount (RM)
+                <input
+                    id="edit-transaction-amount"
+                    type="number"
+                    min="0.01"
+                    step="0.01"
+                    required
+                >
+            </label>
+
+            <label>
+                Category
+                <input
+                    id="edit-transaction-category"
+                    type="text"
+                    required
+                >
+            </label>
+
+            <label>
+                Description
+                <input
+                    id="edit-transaction-description"
+                    type="text"
+                    required
+                >
+            </label>
+
+            <button class="submit-button" type="submit">
+                Save changes
+            </button>
+        </form>
+    </div>
+</div>
 
 <div
     id="budget-modal"

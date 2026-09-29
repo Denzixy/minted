@@ -379,125 +379,121 @@ async function loadAllTransactions() {
 
 
 function displayAllTransactions() {
+    const container = document.getElementById(
+        "all-transactions"
+    );
 
-    const container =
-        document.getElementById(
-            "all-transactions"
-        );
+    if (!container) return;
 
-    if (!container) {
-        return;
-    }
+    const search = (
+        document.getElementById("transaction-search")?.value || ""
+    ).trim().toLowerCase();
 
-    if (transactions.length === 0) {
+    const typeFilter =
+        document.getElementById("transaction-type-filter")?.value
+        || "all";
 
+    const sortOrder =
+        document.getElementById("transaction-sort")?.value
+        || "newest";
+
+    let filtered = transactions.filter(transaction => {
+        const matchesSearch =
+            transaction.description.toLowerCase().includes(search) ||
+            transaction.category.toLowerCase().includes(search);
+
+        const matchesType =
+            typeFilter === "all" ||
+            transaction.type === typeFilter;
+
+        return matchesSearch && matchesType;
+    });
+
+    filtered.sort((a, b) => {
+        if (sortOrder === "newest") {
+            return b.id - a.id;
+        }
+
+        if (sortOrder === "oldest") {
+            return a.id - b.id;
+        }
+
+        if (sortOrder === "highest") {
+            return b.amount - a.amount;
+        }
+
+        if (sortOrder === "lowest") {
+            return a.amount - b.amount;
+        }
+
+        return 0;
+    });
+
+    if (filtered.length === 0) {
         container.innerHTML = `
             <div class="empty-budget">
-
-                <h3>
-                    No transactions yet
-                </h3>
-
+                <h3>No matching transactions</h3>
                 <p>
-                    Add your first transaction
-                    to start tracking your money.
+                    Try a different search or change your filters.
                 </p>
-
             </div>
         `;
-
         return;
     }
 
-    container.innerHTML =
-        [...transactions]
-        .reverse()
-        .map(transaction => {
+    container.innerHTML = filtered.map(transaction => {
+        const isIncome = transaction.type === "income";
 
-            const isIncome =
-                transaction.type === "income";
-
-            return `
-                <div class="transaction">
-
-                    <div class="transaction-left">
-
-                        <div class="transaction-icon">
-                            ${isIncome ? "↑" : "↓"}
-                        </div>
-
-                        <div class="transaction-info">
-
-                            <strong>
-                                ${escapeHtml(
-                                    transaction.description
-                                )}
-                            </strong>
-
-                            <span>
-                                ${escapeHtml(
-                                    transaction.category
-                                )}
-                                ·
-                                ${transaction.date}
-                            </span>
-
-                        </div>
-
+        return `
+            <div class="transaction">
+                <div class="transaction-left">
+                    <div class="transaction-icon">
+                        ${isIncome ? "↑" : "↓"}
                     </div>
 
+                    <div class="transaction-info">
+                        <strong>
+                            ${escapeHtml(transaction.description)}
+                        </strong>
 
-                    <div class="transaction-actions">
-
-                        <div
-                            class="
-                            transaction-amount
-                            ${isIncome
-                                ? "income"
-                                : "expense"}"
-                        >
-                            ${isIncome ? "+" : "-"}
-                            RM ${Number(
-                                transaction.amount
-                            ).toFixed(2)}
-                        </div>
-
-
-                        <button
-                            class="action-button"
-                            onclick="
-                                editTransaction(
-                                    ${transaction.id}
-                                )
-                            "
-                        >
-                            Edit
-                        </button>
-
-
-                        <button
-                            class="
-                            action-button
-                            delete-button"
-                            onclick="
-                                deleteTransaction(
-                                    ${transaction.id}
-                                )
-                            "
-                        >
-                            Delete
-                        </button>
-
+                        <span>
+                            ${escapeHtml(transaction.category)}
+                            ·
+                            ${escapeHtml(transaction.date)}
+                        </span>
                     </div>
-
                 </div>
-            `;
 
-        })
-        .join("");
+                <div class="transaction-actions">
+                    <div class="transaction-amount ${
+                        isIncome ? "income" : "expense"
+                    }">
+                        ${isIncome ? "+" : "-"}
+                        RM ${Number(transaction.amount).toFixed(2)}
+                    </div>
+
+                    <button
+                        class="action-button"
+                        onclick="editTransaction(${transaction.id})"
+                    >
+                        Edit
+                    </button>
+
+                    <button
+                        class="action-button delete-button"
+                        onclick="deleteTransaction(${transaction.id})"
+                    >
+                        Delete
+                    </button>
+                </div>
+            </div>
+        `;
+    }).join("");
 }
 
-async function editTransaction(transactionId) {
+let editingTransactionId = null;
+
+function editTransaction(transactionId) {
     const transaction = transactions.find(
         item => item.id === transactionId
     );
@@ -507,83 +503,109 @@ async function editTransaction(transactionId) {
         return;
     }
 
-    const amount = prompt(
-        "Amount (RM):",
-        transaction.amount
-    );
+    editingTransactionId = transactionId;
 
-    if (amount === null) return;
+    document.getElementById(
+        "edit-transaction-type"
+    ).value = transaction.type;
 
-    const category = prompt(
-        "Category:",
-        transaction.category
-    );
+    document.getElementById(
+        "edit-transaction-amount"
+    ).value = transaction.amount;
 
-    if (category === null) return;
+    document.getElementById(
+        "edit-transaction-category"
+    ).value = transaction.category;
 
-    const description = prompt(
-        "Description:",
-        transaction.description
-    );
+    document.getElementById(
+        "edit-transaction-description"
+    ).value = transaction.description;
 
-    if (description === null) return;
+    document.getElementById(
+        "edit-transaction-modal"
+    ).classList.remove("hidden");
+}
 
-    const type = prompt(
-        "Type (income/expense):",
-        transaction.type
-    );
+function closeEditTransactionModal() {
+    document.getElementById(
+        "edit-transaction-modal"
+    ).classList.add("hidden");
 
-    if (type === null) return;
+    editingTransactionId = null;
+}
 
-    if (type !== "income" && type !== "expense") {
-        alert("Type must be income or expense.");
-        return;
-    }
+document
+    .getElementById("edit-transaction-form")
+    .addEventListener("submit", async function(event) {
+        event.preventDefault();
 
-    try {
-        const response = await fetch(
-            `${API_URL}/transactions/${transactionId}`,
-            {
-                method: "PUT",
-
-                headers: {
-                    "Content-Type": "application/json"
-                },
-
-                body: JSON.stringify({
-                    amount: Number(amount),
-                    transaction_type: type,
-                    category: category,
-                    description: description
-                })
-            }
-        );
-
-        if (!response.ok) {
-            throw new Error(
-                "Failed to update transaction"
-            );
+        if (editingTransactionId === null) {
+            return;
         }
 
-        await loadTransactions();
-        await loadDashboard();
+        const transaction = {
+            amount: Number(
+                document.getElementById(
+                    "edit-transaction-amount"
+                ).value
+            ),
+            transaction_type:
+                document.getElementById(
+                    "edit-transaction-type"
+                ).value,
+            category:
+                document.getElementById(
+                    "edit-transaction-category"
+                ).value.trim(),
+            description:
+                document.getElementById(
+                    "edit-transaction-description"
+                ).value.trim()
+        };
 
         if (
-            !document
-                .getElementById("transactions-page")
-                .classList.contains("hidden")
+            !transaction.category ||
+            !transaction.description ||
+            transaction.amount <= 0
         ) {
-            displayAllTransactions();
+            alert("Please enter valid transaction details.");
+            return;
         }
 
-    } catch (error) {
-        console.error(error);
+        try {
+            const response = await fetch(
+                `${API_URL}/transactions/${editingTransactionId}`,
+                {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(transaction)
+                }
+            );
 
-        alert(
-            "Could not update transaction."
-        );
-    }
-}
+            if (!response.ok) {
+                throw new Error("Failed to update transaction");
+            }
+
+            closeEditTransactionModal();
+
+            await loadTransactions();
+            await loadDashboard();
+
+            if (
+                !document
+                    .getElementById("transactions-page")
+                    .classList.contains("hidden")
+            ) {
+                displayAllTransactions();
+            }
+
+        } catch (error) {
+            console.error(error);
+            alert("Could not update transaction.");
+        }
+    });
 
 
 async function deleteTransaction(
