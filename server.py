@@ -32,7 +32,9 @@ app = FastAPI(
 )
 
 
-initialize_database()
+@app.on_event("startup")
+def startup():
+    initialize_database()
 
 
 app.include_router(
