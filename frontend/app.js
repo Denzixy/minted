@@ -1,105 +1,116 @@
 const API_URL = "";
 
+
+/* =========================================
+   GLOBAL STATE
+========================================= */
+
 let transactions = [];
 
 let selectedDate = new Date();
 
+let budgetDate = new Date();
+
 let spendingChart = null;
 
 
-async function loadTransactions() {
+/* =========================================
+   PAGE NAVIGATION
+========================================= */
 
-    try {
+function showPage(
+    pageId,
+    button
+) {
 
-        const response = await fetch(
-            `${API_URL}/transactions`
+    document
+        .querySelectorAll(".page")
+        .forEach(page => {
+
+            page.classList.add(
+                "hidden"
+            );
+
+        });
+
+
+    const page = document.getElementById(
+        pageId
+    );
+
+    if (page) {
+
+        page.classList.remove(
+            "hidden"
         );
 
-        transactions = await response.json();
+    }
 
-        displayTransactions();
-        await loadDashboard();
 
-    } catch (error) {
+    document
+        .querySelectorAll(".nav-item")
+        .forEach(item => {
 
-        console.error(error);
+            item.classList.remove(
+                "active"
+            );
 
-        document.getElementById(
-            "transactions"
-        ).innerHTML =
-            "<p>Could not connect to Minted API.</p>";
+        });
+
+
+    if (button) {
+
+        button.classList.add(
+            "active"
+        );
+
+    }
+
+
+    if (
+        pageId ===
+        "dashboard-page"
+    ) {
+
+        loadDashboard();
+
+    }
+
+
+    if (
+        pageId ===
+        "transactions-page"
+    ) {
+
+        loadAllTransactions();
+
+    }
+
+
+    if (
+        pageId ===
+        "budgets-page"
+    ) {
+
+        loadBudgets();
+
+    }
+
+
+    if (
+        pageId ===
+        "goals-page"
+    ) {
+
+        loadGoals();
+
     }
 }
 
 
-function displayTransactions() {
-
-    const container =
-        document.getElementById(
-            "transactions"
-        );
-
-
-    if (transactions.length === 0) {
-
-        container.innerHTML =
-            "<p>No transactions yet.</p>";
-
-        return;
-    }
-
-
-    const recent =
-        [...transactions]
-        .reverse()
-        .slice(0, 8);
-
-
-    container.innerHTML =
-        recent.map(transaction => {
-
-            const sign =
-                transaction.type === "income"
-                    ? "+"
-                    : "-";
-
-
-            const className =
-                transaction.type === "income"
-                    ? "income"
-                    : "expense";
-
-
-            return `
-                <div class="transaction">
-
-                    <div class="transaction-info">
-
-                        <strong>
-                            ${transaction.description}
-                        </strong>
-
-                        <span>
-                            ${transaction.category}
-                            ·
-                            ${transaction.date}
-                        </span>
-
-                    </div>
-
-                    <strong class="${className}">
-                        ${sign}
-                        RM ${Number(
-                            transaction.amount
-                        ).toFixed(2)}
-                    </strong>
-
-                </div>
-            `;
-
-        }).join("");
-}
-
+/* =========================================
+   DASHBOARD
+========================================= */
 
 async function loadDashboard() {
 
@@ -111,38 +122,49 @@ async function loadDashboard() {
         const month =
             selectedDate.getMonth() + 1;
 
-        const response = await fetch(
-            `${API_URL}/dashboard?year=${year}&month=${month}`
-        );
+
+        const response =
+            await fetch(
+                `${API_URL}/dashboard?year=${year}&month=${month}`
+            );
+
 
         if (!response.ok) {
+
             throw new Error(
                 "Failed to load dashboard"
             );
+
         }
+
 
         const dashboard =
             await response.json();
+
 
         document.getElementById(
             "balance"
         ).textContent =
             `RM ${dashboard.balance.toFixed(2)}`;
 
+
         document.getElementById(
             "income"
         ).textContent =
             `RM ${dashboard.income.toFixed(2)}`;
+
 
         document.getElementById(
             "expenses"
         ).textContent =
             `RM ${dashboard.expenses.toFixed(2)}`;
 
+
         document.getElementById(
             "savings-rate"
         ).textContent =
             `${dashboard.savings_rate.toFixed(1)}%`;
+
 
         updateMonthLabel();
 
@@ -150,21 +172,31 @@ async function loadDashboard() {
             dashboard.spending
         );
 
+
+        await loadTransactions();
+
     } catch (error) {
 
-        console.error(error);
+        console.error(
+            error
+        );
 
     }
 }
 
-function changeMonth(direction) {
+
+function changeMonth(
+    direction
+) {
 
     selectedDate.setMonth(
-        selectedDate.getMonth() + direction
+        selectedDate.getMonth()
+        + direction
     );
 
     loadDashboard();
 }
+
 
 function updateMonthLabel() {
 
@@ -177,33 +209,50 @@ function updateMonthLabel() {
             }
         );
 
+
     document.getElementById(
         "current-month"
     ).textContent = label;
 }
 
 
-function displaySpending(spending) {
+function displaySpending(
+    spending
+) {
 
     const container =
-        document.getElementById("spending");
+        document.getElementById(
+            "spending"
+        );
+
 
     const categories =
-        Object.entries(spending)
-        .sort((a, b) => b[1] - a[1]);
+        Object.entries(
+            spending
+        ).sort(
+            (a, b) => b[1] - a[1]
+        );
 
-    if (categories.length === 0) {
+
+    if (
+        categories.length === 0
+    ) {
 
         container.innerHTML =
             "<p>No spending this month.</p>";
 
+
         if (spendingChart) {
+
             spendingChart.destroy();
+
             spendingChart = null;
+
         }
 
         return;
     }
+
 
     container.innerHTML = `
         <div class="chart-container">
@@ -211,57 +260,385 @@ function displaySpending(spending) {
         </div>
     `;
 
+
     const labels =
         categories.map(
             item => item[0]
         );
+
 
     const values =
         categories.map(
             item => item[1]
         );
 
+
     const canvas =
         document.getElementById(
             "spending-chart"
         );
 
+
     if (spendingChart) {
+
         spendingChart.destroy();
+
     }
 
+
     spendingChart =
-        new Chart(canvas, {
+        new Chart(
+            canvas,
+            {
+                type: "doughnut",
 
-            type: "doughnut",
+                data: {
 
-            data: {
+                    labels: labels,
 
-                labels: labels,
+                    datasets: [
+                        {
+                            data: values
+                        }
+                    ]
 
-                datasets: [{
-                    data: values
-                }]
+                },
 
-            },
+                options: {
 
-            options: {
+                    responsive: true,
 
-                responsive: true,
+                    plugins: {
 
-                plugins: {
+                        legend: {
+                            position:
+                                "bottom"
+                        }
 
-                    legend: {
-                        position: "bottom"
                     }
 
                 }
 
             }
-
-        });
+        );
 }
 
+
+/* =========================================
+   TRANSACTIONS
+========================================= */
+
+async function loadTransactions() {
+
+    try {
+
+        const response =
+            await fetch(
+                `${API_URL}/transactions`
+            );
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                "Failed to load transactions"
+            );
+
+        }
+
+
+        transactions =
+            await response.json();
+
+
+        displayTransactions();
+
+    } catch (error) {
+
+        console.error(
+            error
+        );
+
+
+        document.getElementById(
+            "transactions"
+        ).innerHTML =
+            "<p>Could not connect to Minted API.</p>";
+
+    }
+}
+
+
+async function loadAllTransactions() {
+
+    await loadTransactions();
+
+    displayAllTransactions();
+
+}
+
+
+function displayAllTransactions() {
+
+    const container =
+        document.getElementById(
+            "all-transactions"
+        );
+
+    if (!container) {
+        return;
+    }
+
+    if (transactions.length === 0) {
+
+        container.innerHTML = `
+            <div class="empty-budget">
+
+                <h3>
+                    No transactions yet
+                </h3>
+
+                <p>
+                    Add your first transaction
+                    to start tracking your money.
+                </p>
+
+            </div>
+        `;
+
+        return;
+    }
+
+    container.innerHTML =
+        [...transactions]
+        .reverse()
+        .map(transaction => {
+
+            const isIncome =
+                transaction.type === "income";
+
+            return `
+                <div class="transaction">
+
+                    <div class="transaction-left">
+
+                        <div class="transaction-icon">
+                            ${isIncome ? "↑" : "↓"}
+                        </div>
+
+                        <div class="transaction-info">
+
+                            <strong>
+                                ${escapeHtml(
+                                    transaction.description
+                                )}
+                            </strong>
+
+                            <span>
+                                ${escapeHtml(
+                                    transaction.category
+                                )}
+                                ·
+                                ${transaction.date}
+                            </span>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="transaction-actions">
+
+                        <div
+                            class="
+                            transaction-amount
+                            ${isIncome
+                                ? "income"
+                                : "expense"}"
+                        >
+                            ${isIncome ? "+" : "-"}
+                            RM ${Number(
+                                transaction.amount
+                            ).toFixed(2)}
+                        </div>
+
+
+                        <button
+                            class="action-button"
+                            onclick="
+                                editTransaction(
+                                    ${transaction.id}
+                                )
+                            "
+                        >
+                            Edit
+                        </button>
+
+
+                        <button
+                            class="
+                            action-button
+                            delete-button"
+                            onclick="
+                                deleteTransaction(
+                                    ${transaction.id}
+                                )
+                            "
+                        >
+                            Delete
+                        </button>
+
+                    </div>
+
+                </div>
+            `;
+
+        })
+        .join("");
+}
+
+async function editTransaction(transactionId) {
+    const transaction = transactions.find(
+        item => item.id === transactionId
+    );
+
+    if (!transaction) {
+        alert("Transaction not found.");
+        return;
+    }
+
+    const amount = prompt(
+        "Amount (RM):",
+        transaction.amount
+    );
+
+    if (amount === null) return;
+
+    const category = prompt(
+        "Category:",
+        transaction.category
+    );
+
+    if (category === null) return;
+
+    const description = prompt(
+        "Description:",
+        transaction.description
+    );
+
+    if (description === null) return;
+
+    const type = prompt(
+        "Type (income/expense):",
+        transaction.type
+    );
+
+    if (type === null) return;
+
+    if (type !== "income" && type !== "expense") {
+        alert("Type must be income or expense.");
+        return;
+    }
+
+    try {
+        const response = await fetch(
+            `${API_URL}/transactions/${transactionId}`,
+            {
+                method: "PUT",
+
+                headers: {
+                    "Content-Type": "application/json"
+                },
+
+                body: JSON.stringify({
+                    amount: Number(amount),
+                    transaction_type: type,
+                    category: category,
+                    description: description
+                })
+            }
+        );
+
+        if (!response.ok) {
+            throw new Error(
+                "Failed to update transaction"
+            );
+        }
+
+        await loadTransactions();
+        await loadDashboard();
+
+        if (
+            !document
+                .getElementById("transactions-page")
+                .classList.contains("hidden")
+        ) {
+            displayAllTransactions();
+        }
+
+    } catch (error) {
+        console.error(error);
+
+        alert(
+            "Could not update transaction."
+        );
+    }
+}
+
+
+async function deleteTransaction(
+    transactionId
+) {
+    const transaction = transactions.find(
+        item => item.id === transactionId
+    );
+
+    if (!transaction) {
+        alert("Transaction not found.");
+        return;
+    }
+
+    const confirmed = confirm(
+        `Delete "${transaction.description}"?`
+    );
+
+    if (!confirmed) {
+        return;
+    }
+
+    try {
+        const response = await fetch(
+            `${API_URL}/transactions/${transactionId}`,
+            {
+                method: "DELETE"
+            }
+        );
+
+        if (!response.ok) {
+            throw new Error(
+                "Failed to delete transaction"
+            );
+        }
+
+        await loadTransactions();
+        await loadDashboard();
+
+        if (
+            !document
+                .getElementById("transactions-page")
+                .classList.contains("hidden")
+        ) {
+            displayAllTransactions();
+        }
+
+    } catch (error) {
+        console.error(error);
+
+        alert(
+            "Could not delete transaction."
+        );
+    }
+}
 
 function openTransactionModal() {
 
@@ -269,8 +646,9 @@ function openTransactionModal() {
         .getElementById(
             "transaction-modal"
         )
-        .classList
-        .remove("hidden");
+        .classList.remove(
+            "hidden"
+        );
 }
 
 
@@ -280,13 +658,16 @@ function closeTransactionModal() {
         .getElementById(
             "transaction-modal"
         )
-        .classList
-        .add("hidden");
+        .classList.add(
+            "hidden"
+        );
 }
 
 
 document
-    .getElementById("transaction-form")
+    .getElementById(
+        "transaction-form"
+    )
     .addEventListener(
         "submit",
         async function(event) {
@@ -297,25 +678,25 @@ document
             const transaction = {
 
                 amount: Number(
-                    document
-                        .getElementById("amount")
-                        .value
+                    document.getElementById(
+                        "transaction-amount"
+                    ).value
                 ),
 
                 transaction_type:
-                    document
-                        .getElementById("type")
-                        .value,
+                    document.getElementById(
+                        "transaction-type"
+                    ).value,
 
                 category:
-                    document
-                        .getElementById("category")
-                        .value,
+                    document.getElementById(
+                        "transaction-category"
+                    ).value,
 
                 description:
-                    document
-                        .getElementById("description")
-                        .value
+                    document.getElementById(
+                        "transaction-description"
+                    ).value
 
             };
 
@@ -359,15 +740,19 @@ document
 
                 closeTransactionModal();
 
+
                 await loadTransactions();
 
+                await loadDashboard();
 
             } catch (error) {
 
-                console.error(error);
+                console.error(
+                    error
+                );
 
                 alert(
-                    "Could not add transaction."
+                    "Could not save transaction."
                 );
 
             }
@@ -376,4 +761,634 @@ document
     );
 
 
-loadTransactions();
+/* =========================================
+   BUDGETS
+========================================= */
+
+async function loadBudgets() {
+
+    const year =
+        budgetDate.getFullYear();
+
+    const month =
+        budgetDate.getMonth() + 1;
+
+
+    try {
+
+        const response =
+            await fetch(
+                `${API_URL}/budgets?year=${year}&month=${month}`
+            );
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                "Failed to load budgets"
+            );
+
+        }
+
+
+        const budgets =
+            await response.json();
+
+
+        displayBudgets(
+            budgets
+        );
+
+
+        updateBudgetMonth();
+
+    } catch (error) {
+
+        console.error(
+            error
+        );
+
+
+        document.getElementById(
+            "budget-list"
+        ).innerHTML =
+            "<p>Could not load budgets.</p>";
+
+    }
+}
+
+
+function displayBudgets(
+    budgets
+) {
+
+    const container =
+        document.getElementById(
+            "budget-list"
+        );
+
+
+    if (
+        budgets.length === 0
+    ) {
+
+        container.innerHTML = `
+            <div class="empty-budget">
+
+                <h3>
+                    No budgets yet
+                </h3>
+
+                <p>
+                    Create a budget to start
+                    tracking your spending.
+                </p>
+
+            </div>
+        `;
+
+        return;
+    }
+
+
+    container.innerHTML =
+        budgets.map(
+            budget => {
+
+                const percentage =
+                    Math.min(
+                        budget.percentage,
+                        100
+                    );
+
+
+                const status =
+                    budget.over_budget
+
+                        ? "Over budget"
+
+                        : `${budget.remaining.toFixed(2)} remaining`;
+
+
+                return `
+                    <div class="budget-card">
+
+                        <div class="budget-header">
+
+                            <div>
+
+                                <h3>
+                                    ${escapeHtml(
+                                        budget.category
+                                    )}
+                                </h3>
+
+                                <p>
+                                    RM ${budget.spent.toFixed(2)}
+                                    /
+                                    RM ${budget.budget.toFixed(2)}
+                                </p>
+
+                            </div>
+
+                            <strong>
+                                ${budget.percentage.toFixed(0)}%
+                            </strong>
+
+                        </div>
+
+
+                        <div class="progress-track">
+
+                            <div
+                                class="progress-bar
+                                ${budget.over_budget ? "over" : ""}"
+                                style="
+                                    width:
+                                    ${percentage}%;
+                                "
+                            ></div>
+
+                        </div>
+
+
+                        <div class="budget-footer">
+
+                            <span>
+                                ${status}
+                            </span>
+
+                        </div>
+
+                    </div>
+                `;
+
+            }
+        ).join("");
+}
+
+
+function changeBudgetMonth(
+    direction
+) {
+
+    budgetDate.setMonth(
+        budgetDate.getMonth()
+        + direction
+    );
+
+    loadBudgets();
+}
+
+
+function updateBudgetMonth() {
+
+    const label =
+        budgetDate.toLocaleDateString(
+            "en-US",
+            {
+                month: "long",
+                year: "numeric"
+            }
+        );
+
+
+    document.getElementById(
+        "budget-month"
+    ).textContent = label;
+}
+
+
+function openBudgetModal() {
+
+    document
+        .getElementById(
+            "budget-modal"
+        )
+        .classList.remove(
+            "hidden"
+        );
+}
+
+
+function closeBudgetModal() {
+
+    document
+        .getElementById(
+            "budget-modal"
+        )
+        .classList.add(
+            "hidden"
+        );
+}
+
+
+document
+    .getElementById(
+        "budget-form"
+    )
+    .addEventListener(
+        "submit",
+        async function(event) {
+
+            event.preventDefault();
+
+
+            const budget = {
+
+                category:
+                    document.getElementById(
+                        "budget-category"
+                    ).value,
+
+                amount: Number(
+                    document.getElementById(
+                        "budget-amount"
+                    ).value
+                ),
+
+                year:
+                    budgetDate.getFullYear(),
+
+                month:
+                    budgetDate.getMonth() + 1
+
+            };
+
+
+            try {
+
+                const response =
+                    await fetch(
+                        `${API_URL}/budgets`,
+                        {
+                            method: "POST",
+
+                            headers: {
+                                "Content-Type":
+                                    "application/json"
+                            },
+
+                            body:
+                                JSON.stringify(
+                                    budget
+                                )
+                        }
+                    );
+
+
+                if (!response.ok) {
+
+                    throw new Error(
+                        "Failed to save budget"
+                    );
+
+                }
+
+
+                document
+                    .getElementById(
+                        "budget-form"
+                    )
+                    .reset();
+
+
+                closeBudgetModal();
+
+
+                loadBudgets();
+
+            } catch (error) {
+
+                console.error(
+                    error
+                );
+
+                alert(
+                    "Could not save budget."
+                );
+
+            }
+
+        }
+    );
+
+
+/* =========================================
+   GOALS
+========================================= */
+
+async function loadGoals() {
+
+    try {
+
+        const response =
+            await fetch(
+                `${API_URL}/goals`
+            );
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                "Failed to load goals"
+            );
+
+        }
+
+
+        const goals =
+            await response.json();
+
+
+        displayGoals(
+            goals
+        );
+
+    } catch (error) {
+
+        console.error(
+            error
+        );
+
+
+        document.getElementById(
+            "goal-list"
+        ).innerHTML =
+            "<p>Could not load goals.</p>";
+
+    }
+}
+
+
+function displayGoals(
+    goals
+) {
+
+    const container =
+        document.getElementById(
+            "goal-list"
+        );
+
+
+    if (
+        goals.length === 0
+    ) {
+
+        container.innerHTML = `
+            <div class="empty-budget">
+
+                <h3>
+                    No goals yet
+                </h3>
+
+                <p>
+                    Create a goal and start
+                    tracking your progress.
+                </p>
+
+            </div>
+        `;
+
+        return;
+    }
+
+
+    container.innerHTML =
+        goals.map(
+            goal => {
+
+                return `
+                    <div class="goal-card">
+
+                        <div class="goal-header">
+
+                            <div>
+
+                                <h3>
+                                    ${escapeHtml(
+                                        goal.name
+                                    )}
+                                </h3>
+
+                                <p>
+                                    ${
+                                        goal.deadline
+                                            ? `Target: ${goal.deadline}`
+                                            : "No deadline"
+                                    }
+                                </p>
+
+                            </div>
+
+                            <strong>
+                                ${goal.percentage.toFixed(0)}%
+                            </strong>
+
+                        </div>
+
+
+                        <div class="goal-amount">
+
+                            RM ${goal.saved.toFixed(2)}
+
+                            <span>
+                                /
+                                RM ${goal.target.toFixed(2)}
+                            </span>
+
+                        </div>
+
+
+                        <div class="progress-track">
+
+                            <div
+                                class="progress-bar"
+                                style="
+                                    width:
+                                    ${goal.percentage}%;
+                                "
+                            ></div>
+
+                        </div>
+
+
+                        <div class="goal-footer">
+
+                            <span>
+                                RM ${goal.remaining.toFixed(2)}
+                                remaining
+                            </span>
+
+                        </div>
+
+                    </div>
+                `;
+
+            }
+        ).join("");
+}
+
+
+function openGoalModal() {
+
+    document
+        .getElementById(
+            "goal-modal"
+        )
+        .classList.remove(
+            "hidden"
+        );
+}
+
+
+function closeGoalModal() {
+
+    document
+        .getElementById(
+            "goal-modal"
+        )
+        .classList.add(
+            "hidden"
+        );
+}
+
+
+document
+    .getElementById(
+        "goal-form"
+    )
+    .addEventListener(
+        "submit",
+        async function(event) {
+
+            event.preventDefault();
+
+
+            const goal = {
+
+                name:
+                    document.getElementById(
+                        "goal-name"
+                    ).value,
+
+                target: Number(
+                    document.getElementById(
+                        "goal-target"
+                    ).value
+                ),
+
+                saved: Number(
+                    document.getElementById(
+                        "goal-saved"
+                    ).value
+                ),
+
+                deadline:
+                    document.getElementById(
+                        "goal-deadline"
+                    ).value
+                    || null
+
+            };
+
+
+            try {
+
+                const response =
+                    await fetch(
+                        `${API_URL}/goals`,
+                        {
+                            method: "POST",
+
+                            headers: {
+                                "Content-Type":
+                                    "application/json"
+                            },
+
+                            body:
+                                JSON.stringify(
+                                    goal
+                                )
+                        }
+                    );
+
+
+                if (!response.ok) {
+
+                    throw new Error(
+                        "Failed to create goal"
+                    );
+
+                }
+
+
+                document
+                    .getElementById(
+                        "goal-form"
+                    )
+                    .reset();
+
+
+                closeGoalModal();
+
+
+                loadGoals();
+
+            } catch (error) {
+
+                console.error(
+                    error
+                );
+
+                alert(
+                    "Could not create goal."
+                );
+
+            }
+
+        }
+    );
+
+
+/* =========================================
+   SECURITY / HTML ESCAPING
+========================================= */
+
+function escapeHtml(
+    value
+) {
+
+    return String(value)
+        .replaceAll(
+            "&",
+            "&amp;"
+        )
+        .replaceAll(
+            "<",
+            "&lt;"
+        )
+        .replaceAll(
+            ">",
+            "&gt;"
+        )
+        .replaceAll(
+            '"',
+            "&quot;"
+        )
+        .replaceAll(
+            "'",
+            "&#039;"
+        );
+}
+
+
+/* =========================================
+   INITIAL LOAD
+========================================= */
+
+loadDashboard();
+
+loadBudgets();
+
+loadGoals();

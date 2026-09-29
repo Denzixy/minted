@@ -1,18 +1,30 @@
 import csv
+
 from datetime import datetime
 
 
 def export_transactions(transactions):
+
     if not transactions:
-        print("\nNo transactions to export.")
+
+        print(
+            "\nNo transactions to export."
+        )
+
         return
 
     filename = (
-        f"minted_transactions_"
+        "minted_transactions_"
         f"{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
     )
 
-    with open(filename, "w", newline="", encoding="utf-8-sig") as file:
+    with open(
+        filename,
+        "w",
+        newline="",
+        encoding="utf-8-sig"
+    ) as file:
+
         writer = csv.writer(file)
 
         writer.writerow([
@@ -25,6 +37,7 @@ def export_transactions(transactions):
         ])
 
         for transaction in transactions:
+
             writer.writerow([
                 transaction.transaction_id,
                 transaction.date,
@@ -34,5 +47,10 @@ def export_transactions(transactions):
                 f"{transaction.amount:.2f}"
             ])
 
-    print(f"\nTransactions exported successfully!")
-    print(f"File: {filename}")
+    print(
+        "\nTransactions exported successfully!"
+    )
+
+    print(
+        f"File: {filename}"
+    )

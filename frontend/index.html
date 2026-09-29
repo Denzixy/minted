@@ -1,8 +1,11 @@
 <!DOCTYPE html>
+
 <html lang="en">
 
 <head>
+
     <meta charset="UTF-8">
+
     <meta
         name="viewport"
         content="width=device-width, initial-scale=1.0"
@@ -10,47 +13,83 @@
 
     <title>Minted</title>
 
-    <link rel="stylesheet" href="style.css">
+    <link
+        rel="stylesheet"
+        href="style.css"
+    >
+
 </head>
 
 <body>
 
-    <div class="app">
+<div class="app">
 
-        <aside class="sidebar">
+    <!-- SIDEBAR -->
 
-            <div class="logo">
-                minted<span>.</span>
-            </div>
+    <aside class="sidebar">
 
-            <nav>
-                <button class="nav-item active">
-                    Dashboard
-                </button>
+        <div class="logo">
+            minted<span>.</span>
+        </div>
 
-                <button class="nav-item">
-                    Transactions
-                </button>
+        <nav>
 
-                <button class="nav-item">
-                    Budgets
-                </button>
+            <button
+                class="nav-item active"
+                onclick="showPage('dashboard-page', this)"
+            >
+                Dashboard
+            </button>
 
-                <button class="nav-item">
-                    Goals
-                </button>
-            </nav>
+            <button
+                class="nav-item"
+                onclick="showPage('transactions-page', this)"
+            >
+                Transactions
+            </button>
 
-        </aside>
+            <button
+                class="nav-item"
+                onclick="showPage('budgets-page', this)"
+            >
+                Budgets
+            </button>
+
+            <button
+                class="nav-item"
+                onclick="showPage('goals-page', this)"
+            >
+                Goals
+            </button>
+
+        </nav>
+
+    </aside>
 
 
-        <main class="main">
+    <!-- MAIN -->
 
-            <header class="topbar">
+    <main class="main">
+
+
+        <!-- DASHBOARD -->
+
+        <section
+            id="dashboard-page"
+            class="page"
+        >
+
+            <div class="topbar">
+
                 <div>
-                    <p class="eyebrow">PERSONAL FINANCE</p>
 
-                    <h1>Dashboard</h1>
+                    <p class="eyebrow">
+                        PERSONAL FINANCE
+                    </p>
+
+                    <h1>
+                        Dashboard
+                    </h1>
 
                     <div class="month-selector">
 
@@ -58,7 +97,7 @@
                             onclick="changeMonth(-1)"
                             class="month-arrow"
                         >
-                             ←
+                            ←
                         </button>
 
                         <span id="current-month">
@@ -73,6 +112,7 @@
                         </button>
 
                     </div>
+
                 </div>
 
                 <button
@@ -81,50 +121,95 @@
                 >
                     + Add transaction
                 </button>
-            </header>
+
+            </div>
 
 
-            <section class="stats">
+            <!-- STAT CARDS -->
 
-                <div class="card">
-                    <p>Current balance</p>
-                    <h2 id="balance">RM 0.00</h2>
+            <div class="stats-grid">
+
+                <div class="stat-card">
+
+                    <p>
+                        Balance
+                    </p>
+
+                    <h2 id="balance">
+                        RM 0.00
+                    </h2>
+
                 </div>
 
-                <div class="card">
-                    <p>Income</p>
-                    <h2 id="income">RM 0.00</h2>
+
+                <div class="stat-card">
+
+                    <p>
+                        Income
+                    </p>
+
+                    <h2 id="income">
+                        RM 0.00
+                    </h2>
+
                 </div>
 
-                <div class="card">
-                    <p>Expenses</p>
-                    <h2 id="expenses">RM 0.00</h2>
+
+                <div class="stat-card">
+
+                    <p>
+                        Expenses
+                    </p>
+
+                    <h2 id="expenses">
+                        RM 0.00
+                    </h2>
+
                 </div>
 
-                <div class="card">
-                    <p>Savings rate</p>
-                    <h2 id="savings-rate">0%</h2>
+
+                <div class="stat-card">
+
+                    <p>
+                        Savings rate
+                    </p>
+
+                    <h2 id="savings-rate">
+                        0%
+                    </h2>
+
                 </div>
 
-            </section>
+            </div>
 
 
-            <section class="content-grid">
+            <!-- DASHBOARD CONTENT -->
+
+            <div class="dashboard-grid">
+
 
                 <div class="panel">
 
                     <div class="panel-header">
-                        <h3>Recent transactions</h3>
 
-                        <button
-                            onclick="loadTransactions()"
-                            class="refresh"
-                        >
-                            Refresh
-                        </button>
+                        <div>
+
+                            <p class="eyebrow">
+                                ACTIVITY
+                            </p>
+
+                            <h2>
+                                Recent transactions
+                            </h2>
+
+                        </div>
+
                     </div>
 
-                    <div id="transactions">
+                    <div
+                        id="transactions"
+                        class="transaction-list"
+                    >
                         Loading...
                     </div>
 
@@ -134,118 +219,490 @@
                 <div class="panel">
 
                     <div class="panel-header">
-                        <h3>Spending</h3>
+
+                        <div>
+
+                            <p class="eyebrow">
+                                BREAKDOWN
+                            </p>
+
+                            <h2>
+                                Spending
+                            </h2>
+
+                        </div>
+
                     </div>
 
                     <div id="spending">
 
                         <div class="chart-container">
-                            <canvas id="spending-chart"></canvas>
+
+                            <canvas
+                                id="spending-chart"
+                            ></canvas>
+
                         </div>
 
                     </div>
 
                 </div>
 
-            </section>
+            </div>
 
-        </main>
-
-    </div>
+        </section>
 
 
-    <!-- TRANSACTION MODAL -->
+        <!-- TRANSACTIONS -->
 
-    <div
-        id="transaction-modal"
-        class="modal hidden"
-    >
+        <section
+            id="transactions-page"
+            class="page hidden"
+        >
 
-        <div class="modal-content">
+            <div class="topbar">
 
-            <div class="modal-header">
-                <h2>Add transaction</h2>
+                <div>
+
+                    <p class="eyebrow">
+                        ACTIVITY
+                    </p>
+
+                    <h1>
+                        Transactions
+                    </h1>
+
+                </div>
 
                 <button
-                    onclick="closeTransactionModal()"
-                    class="close"
+                    class="add-button"
+                    onclick="openTransactionModal()"
                 >
-                    ×
+                    + Add transaction
                 </button>
+
             </div>
 
 
-            <form id="transaction-form">
+            <div class="panel">
 
-                <label>
-                    Type
+                <div
+                    id="all-transactions"
+                    class="transaction-list"
+                >
+                    Loading...
+                </div>
 
-                    <select id="type">
-                        <option value="expense">
-                            Expense
-                        </option>
+            </div>
 
-                        <option value="income">
-                            Income
-                        </option>
-                    </select>
-                </label>
+        </section>
 
 
-                <label>
-                    Amount
+        <!-- BUDGETS -->
 
-                    <input
-                        id="amount"
-                        type="number"
-                        step="0.01"
-                        min="0.01"
-                        placeholder="0.00"
-                        required
-                    >
-                </label>
+        <section
+            id="budgets-page"
+            class="page hidden"
+        >
 
+            <div class="topbar">
 
-                <label>
-                    Category
+                <div>
 
-                    <input
-                        id="category"
-                        type="text"
-                        placeholder="Food"
-                        required
-                    >
-                </label>
+                    <p class="eyebrow">
+                        MONTHLY PLANNING
+                    </p>
 
+                    <h1>
+                        Budgets
+                    </h1>
 
-                <label>
-                    Description
+                    <div class="month-selector">
 
-                    <input
-                        id="description"
-                        type="text"
-                        placeholder="Lunch"
-                        required
-                    >
-                </label>
+                        <button
+                            onclick="changeBudgetMonth(-1)"
+                            class="month-arrow"
+                        >
+                            ←
+                        </button>
 
+                        <span id="budget-month">
+                            September 2026
+                        </span>
+
+                        <button
+                            onclick="changeBudgetMonth(1)"
+                            class="month-arrow"
+                        >
+                            →
+                        </button>
+
+                    </div>
+
+                </div>
 
                 <button
-                    type="submit"
-                    class="submit-button"
+                    class="add-button"
+                    onclick="openBudgetModal()"
                 >
-                    Add transaction
+                    + Add budget
                 </button>
 
-            </form>
+            </div>
+
+
+            <div
+                id="budget-list"
+                class="budget-grid"
+            >
+                Loading...
+            </div>
+
+        </section>
+
+
+        <!-- GOALS -->
+
+        <section
+            id="goals-page"
+            class="page hidden"
+        >
+
+            <div class="topbar">
+
+                <div>
+
+                    <p class="eyebrow">
+                        LONG TERM
+                    </p>
+
+                    <h1>
+                        Goals
+                    </h1>
+
+                </div>
+
+                <button
+                    class="add-button"
+                    onclick="openGoalModal()"
+                >
+                    + Add goal
+                </button>
+
+            </div>
+
+
+            <div
+                id="goal-list"
+                class="goal-grid"
+            >
+                Loading...
+            </div>
+
+        </section>
+
+
+    </main>
+
+</div>
+
+
+<!-- TRANSACTION MODAL -->
+
+<div
+    id="transaction-modal"
+    class="modal hidden"
+>
+
+    <div class="modal-content">
+
+        <div class="modal-header">
+
+            <div>
+
+                <p class="eyebrow">
+                    NEW ENTRY
+                </p>
+
+                <h2>
+                    Add transaction
+                </h2>
+
+            </div>
+
+            <button
+                class="close-button"
+                onclick="closeTransactionModal()"
+            >
+                ×
+            </button>
 
         </div>
 
+
+        <form id="transaction-form">
+
+            <label>
+                Type
+
+                <select
+                    id="transaction-type"
+                    required
+                >
+
+                    <option value="expense">
+                        Expense
+                    </option>
+
+                    <option value="income">
+                        Income
+                    </option>
+
+                </select>
+
+            </label>
+
+
+            <label>
+                Amount
+
+                <input
+                    id="transaction-amount"
+                    type="number"
+                    min="0.01"
+                    step="0.01"
+                    placeholder="50.00"
+                    required
+                >
+
+            </label>
+
+
+            <label>
+                Category
+
+                <input
+                    id="transaction-category"
+                    type="text"
+                    placeholder="Food"
+                    required
+                >
+
+            </label>
+
+
+            <label>
+                Description
+
+                <input
+                    id="transaction-description"
+                    type="text"
+                    placeholder="Lunch"
+                    required
+                >
+
+            </label>
+
+
+            <button
+                class="submit-button"
+                type="submit"
+            >
+                Save transaction
+            </button>
+
+        </form>
+
     </div>
 
+</div>
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="app.js"></script>
+
+<!-- BUDGET MODAL -->
+
+<div
+    id="budget-modal"
+    class="modal hidden"
+>
+
+    <div class="modal-content">
+
+        <div class="modal-header">
+
+            <div>
+
+                <p class="eyebrow">
+                    MONTHLY PLANNING
+                </p>
+
+                <h2>
+                    Add budget
+                </h2>
+
+            </div>
+
+            <button
+                class="close-button"
+                onclick="closeBudgetModal()"
+            >
+                ×
+            </button>
+
+        </div>
+
+
+        <form id="budget-form">
+
+            <label>
+                Category
+
+                <input
+                    id="budget-category"
+                    type="text"
+                    placeholder="Food"
+                    required
+                >
+
+            </label>
+
+
+            <label>
+                Monthly budget
+
+                <input
+                    id="budget-amount"
+                    type="number"
+                    min="0.01"
+                    step="0.01"
+                    placeholder="300"
+                    required
+                >
+
+            </label>
+
+
+            <button
+                class="submit-button"
+                type="submit"
+            >
+                Save budget
+            </button>
+
+        </form>
+
+    </div>
+
+</div>
+
+
+<!-- GOAL MODAL -->
+
+<div
+    id="goal-modal"
+    class="modal hidden"
+>
+
+    <div class="modal-content">
+
+        <div class="modal-header">
+
+            <div>
+
+                <p class="eyebrow">
+                    LONG TERM
+                </p>
+
+                <h2>
+                    Add goal
+                </h2>
+
+            </div>
+
+            <button
+                class="close-button"
+                onclick="closeGoalModal()"
+            >
+                ×
+            </button>
+
+        </div>
+
+
+        <form id="goal-form">
+
+            <label>
+                Goal name
+
+                <input
+                    id="goal-name"
+                    type="text"
+                    placeholder="New laptop"
+                    required
+                >
+
+            </label>
+
+
+            <label>
+                Target amount
+
+                <input
+                    id="goal-target"
+                    type="number"
+                    min="0.01"
+                    step="0.01"
+                    placeholder="5000"
+                    required
+                >
+
+            </label>
+
+
+            <label>
+                Already saved
+
+                <input
+                    id="goal-saved"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    placeholder="0"
+                    value="0"
+                >
+
+            </label>
+
+
+            <label>
+                Deadline
+
+                <input
+                    id="goal-deadline"
+                    type="date"
+                >
+
+            </label>
+
+
+            <button
+                class="submit-button"
+                type="submit"
+            >
+                Save goal
+            </button>
+
+        </form>
+
+    </div>
+
+</div>
+
+
+<script
+    src="https://cdn.jsdelivr.net/npm/chart.js"
+></script>
+
+<script src="app.js"></script>
 
 </body>
 

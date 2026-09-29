@@ -1,11 +1,20 @@
-def create_goal(goals, name, target):
+def create_goal(
+    goals,
+    name,
+    target
+):
     goals[name] = {
         "target": target,
         "saved": 0
     }
 
 
-def add_to_goal(goals, name, amount):
+def add_to_goal(
+    goals,
+    name,
+    amount
+):
+
     if name not in goals:
         return False
 
@@ -23,7 +32,10 @@ def get_goal_progress(goals):
         target = goal["target"]
         saved = goal["saved"]
 
-        remaining = max(target - saved, 0)
+        remaining = max(
+            target - saved,
+            0
+        )
 
         percentage = (
             (saved / target) * 100

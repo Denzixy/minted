@@ -1,11 +1,21 @@
 from datetime import datetime
 
 
-def set_budget(budgets, category, amount):
+def set_budget(
+    budgets,
+    category,
+    amount
+):
     budgets[category] = amount
 
 
-def get_budget_status(budgets, transactions, year, month):
+def get_budget_status(
+    budgets,
+    transactions,
+    year,
+    month
+):
+
     status = {}
 
     for category, budget in budgets.items():
@@ -17,7 +27,10 @@ def get_budget_status(budgets, transactions, year, month):
             if transaction.transaction_type != "expense":
                 continue
 
-            if transaction.category.lower() != category.lower():
+            if (
+                transaction.category.lower()
+                != category.lower()
+            ):
                 continue
 
             transaction_date = datetime.strptime(
