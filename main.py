@@ -33,6 +33,8 @@ from goals import (
     get_goal_progress
 )
 
+from export import export_transactions
+
 
 transactions = []
 budgets = {}
@@ -86,6 +88,7 @@ def show_menu():
     print("15. Edit transaction")
     print("16. Delete transaction")
     print("17. Exit")
+    print("18. Export transactions to CSV")
 
 
 def add_transaction(transaction_type):
@@ -623,6 +626,9 @@ def main():
         elif choice == "17":
             print("\nThanks for using Minted.")
             break
+
+        elif choice == "18":
+            export_transactions(transactions)
 
         else:
             print("\nInvalid option.")
