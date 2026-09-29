@@ -208,12 +208,25 @@ def remove_transaction(transaction_id: int):
     }
 
 @app.get("/dashboard")
-def get_dashboard():
+def get_dashboard(
+    year: int | None = None,
+    month: int | None = None
+):
     rows = load_transactions()
 
     now = datetime.now()
-    current_year = now.year
-    current_month = now.month
+
+    if year is None:
+        year = now.year
+
+    if month is None:
+        month = now.month
+
+    if month < 1 or month > 12:
+        raise HTTPException(
+            status_code=400,
+            detail="Month must be between 1 and 12."
+        )
 
     balance = 0
     income = 0
@@ -221,6 +234,7 @@ def get_dashboard():
     categories = {}
 
     for row in rows:
+
         amount = float(row["amount"])
         transaction_type = row["transaction_type"]
 
@@ -230,20 +244,22 @@ def get_dashboard():
         else:
             balance -= amount
 
-        # Current-month analytics
         transaction_date = datetime.strptime(
             row["date"],
             "%Y-%m-%d %H:%M"
         )
 
+        # Selected month
         if (
-            transaction_date.year == current_year
-            and transaction_date.month == current_month
+            transaction_date.year == year
+            and transaction_date.month == month
         ):
+
             if transaction_type == "income":
                 income += amount
 
             elif transaction_type == "expense":
+
                 expenses += amount
 
                 category = row["category"]
@@ -277,7 +293,8 @@ def get_dashboard():
         "savings_rate": savings_rate,
         "top_category": top_category,
         "spending": categories,
-        "month": f"{current_year}-{current_month:02d}"
+        "year": year,
+        "month": month
     }
 
 app.mount(

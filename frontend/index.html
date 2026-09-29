@@ -49,7 +49,30 @@
             <header class="topbar">
                 <div>
                     <p class="eyebrow">PERSONAL FINANCE</p>
+
                     <h1>Dashboard</h1>
+
+                    <div class="month-selector">
+
+                        <button
+                            onclick="changeMonth(-1)"
+                            class="month-arrow"
+                        >
+                             ←
+                        </button>
+
+                        <span id="current-month">
+                            September 2026
+                        </span>
+
+                        <button
+                            onclick="changeMonth(1)"
+                            class="month-arrow"
+                        >
+                            →
+                        </button>
+
+                    </div>
                 </div>
 
                 <button
@@ -115,7 +138,11 @@
                     </div>
 
                     <div id="spending">
-                        No data yet.
+
+                        <div class="chart-container">
+                            <canvas id="spending-chart"></canvas>
+                        </div>
+
                     </div>
 
                 </div>
@@ -217,6 +244,7 @@
     </div>
 
 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="app.js"></script>
 
 </body>

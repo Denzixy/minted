@@ -307,6 +307,39 @@ select:focus {
     cursor: pointer;
 }
 
+.month-selector {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 12px;
+}
+
+.month-selector span {
+    font-size: 14px;
+    font-weight: 600;
+    min-width: 130px;
+}
+
+.month-arrow {
+    border: none;
+    background: #f0f0f2;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.month-arrow:hover {
+    background: #e5e5e7;
+}
+
+.chart-container {
+    width: 100%;
+    max-width: 420px;
+    margin: 20px auto;
+}
+
 
 /* MOBILE */
 

@@ -1,7 +1,10 @@
 const API_URL = "";
 
-
 let transactions = [];
+
+let selectedDate = new Date();
+
+let spendingChart = null;
 
 
 async function loadTransactions() {
@@ -99,34 +102,84 @@ function displayTransactions() {
 
 
 async function loadDashboard() {
+
     try {
+
+        const year =
+            selectedDate.getFullYear();
+
+        const month =
+            selectedDate.getMonth() + 1;
+
         const response = await fetch(
-            `${API_URL}/dashboard`
+            `${API_URL}/dashboard?year=${year}&month=${month}`
         );
 
         if (!response.ok) {
-            throw new Error("Failed to load dashboard");
+            throw new Error(
+                "Failed to load dashboard"
+            );
         }
 
-        const dashboard = await response.json();
+        const dashboard =
+            await response.json();
 
-        document.getElementById("balance").textContent =
+        document.getElementById(
+            "balance"
+        ).textContent =
             `RM ${dashboard.balance.toFixed(2)}`;
 
-        document.getElementById("income").textContent =
+        document.getElementById(
+            "income"
+        ).textContent =
             `RM ${dashboard.income.toFixed(2)}`;
 
-        document.getElementById("expenses").textContent =
+        document.getElementById(
+            "expenses"
+        ).textContent =
             `RM ${dashboard.expenses.toFixed(2)}`;
 
-        document.getElementById("savings-rate").textContent =
+        document.getElementById(
+            "savings-rate"
+        ).textContent =
             `${dashboard.savings_rate.toFixed(1)}%`;
 
-        displaySpending(dashboard.spending);
+        updateMonthLabel();
+
+        displaySpending(
+            dashboard.spending
+        );
 
     } catch (error) {
+
         console.error(error);
+
     }
+}
+
+function changeMonth(direction) {
+
+    selectedDate.setMonth(
+        selectedDate.getMonth() + direction
+    );
+
+    loadDashboard();
+}
+
+function updateMonthLabel() {
+
+    const label =
+        selectedDate.toLocaleDateString(
+            "en-US",
+            {
+                month: "long",
+                year: "numeric"
+            }
+        );
+
+    document.getElementById(
+        "current-month"
+    ).textContent = label;
 }
 
 
@@ -140,33 +193,73 @@ function displaySpending(spending) {
         .sort((a, b) => b[1] - a[1]);
 
     if (categories.length === 0) {
+
         container.innerHTML =
-            "<p>No spending yet.</p>";
+            "<p>No spending this month.</p>";
+
+        if (spendingChart) {
+            spendingChart.destroy();
+            spendingChart = null;
+        }
 
         return;
     }
 
-    container.innerHTML =
+    container.innerHTML = `
+        <div class="chart-container">
+            <canvas id="spending-chart"></canvas>
+        </div>
+    `;
+
+    const labels =
         categories.map(
-            ([category, amount]) => {
+            item => item[0]
+        );
 
-                return `
-                    <div class="transaction">
+    const values =
+        categories.map(
+            item => item[1]
+        );
 
-                        <div class="transaction-info">
-                            <strong>
-                                ${category}
-                            </strong>
-                        </div>
+    const canvas =
+        document.getElementById(
+            "spending-chart"
+        );
 
-                        <strong>
-                            RM ${amount.toFixed(2)}
-                        </strong>
+    if (spendingChart) {
+        spendingChart.destroy();
+    }
 
-                    </div>
-                `;
+    spendingChart =
+        new Chart(canvas, {
+
+            type: "doughnut",
+
+            data: {
+
+                labels: labels,
+
+                datasets: [{
+                    data: values
+                }]
+
+            },
+
+            options: {
+
+                responsive: true,
+
+                plugins: {
+
+                    legend: {
+                        position: "bottom"
+                    }
+
+                }
+
             }
-        ).join("");
+
+        });
 }
 
 
